@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-ink antialiased;
+  background-image:
+    radial-gradient(circle at top left, rgba(25, 107, 44, 0.06), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(156, 84, 33, 0.05), transparent 22%);
+}
+
+::selection {
+  @apply bg-primary text-white;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 500,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.editorial-heading {
+  letter-spacing: -0.03em;
+}
+
+.surface-panel {
+  @apply rounded-[1.75rem] border border-line/70 bg-surface shadow-soft;
+}
+
+.surface-muted {
+  @apply rounded-[1.75rem] border border-line/60 bg-surface-soft;
+}

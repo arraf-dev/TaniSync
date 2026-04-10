@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-[#f8f8f4] text-[#172018] antialiased;
+        font-family: 'Inter', sans-serif;
+        background-image:
+            radial-gradient(circle at top left, rgba(25, 107, 44, 0.06), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(156, 84, 33, 0.05), transparent 22%);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .font-heading {
+        font-family: 'Manrope', sans-serif;
+    }
+
+    ::selection {
+        @apply bg-[#196b2c] text-white;
+    }
+}
+
+@layer components {
+    .material-symbols-outlined {
+        font-variation-settings:
+            "FILL" 0,
+            "wght" 500,
+            "GRAD" 0,
+            "opsz" 24;
+    }
+
+    .icon-filled {
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 600,
+            "GRAD" 0,
+            "opsz" 24;
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(18px);
+    }
+
+    .surface-panel {
+        @apply rounded-[1.75rem] border border-[#cad4c4]/70 bg-white shadow-[0_22px_48px_-28px_rgba(23,32,24,0.22)];
+    }
+
+    .surface-muted {
+        @apply rounded-[1.75rem] border border-[#cad4c4]/60 bg-[#f1f4ee];
+    }
+
+    .editorial-heading {
+        letter-spacing: -0.03em;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-[#196b2c] px-6 py-3.5 text-sm font-semibold text-white transition duration-200 hover:bg-[#114b1e] active:scale-[0.98];
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-[#cad4c4] bg-[#f1f4ee] px-6 py-3.5 text-sm font-semibold text-[#172018] transition duration-200 hover:bg-[#e5eadf] active:scale-[0.98];
+    }
+
+    .field-input {
+        @apply w-full rounded-2xl border border-[#cad4c4] bg-white px-4 py-3.5 text-sm text-[#172018] outline-none transition placeholder:text-[#5b6658]/70 focus:border-[#196b2c] focus:ring-4 focus:ring-[#196b2c]/10;
+    }
+}
