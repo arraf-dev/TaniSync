@@ -15,8 +15,13 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/commodities', [AdminController::class, 'commodities'])->name('commodities');
+    Route::post('/commodities', [AdminController::class, 'storeCommodity'])->name('commodities.store');
+    Route::patch('/commodities/{commodity}', [AdminController::class, 'updateCommodity'])->name('commodities.update');
+    Route::patch('/commodities/{commodity}/toggle', [AdminController::class, 'toggleCommodity'])->name('commodities.toggle');
     Route::get('/prices', [AdminController::class, 'prices'])->name('prices');
+    Route::post('/prices', [AdminController::class, 'storePrice'])->name('prices.store');
     Route::get('/harvests', [AdminController::class, 'harvests'])->name('harvests');
+    Route::patch('/harvests/{harvestLog}/status', [AdminController::class, 'updateHarvestStatus'])->name('harvests.status');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
 });
 

@@ -7,12 +7,13 @@
     ];
 @endphp
 
-<a href="{{ $href }}" class="group surface-panel flex items-center gap-4 p-5 transition hover:-translate-y-0.5">
-    <div class="flex h-12 w-12 items-center justify-center rounded-2xl transition {{ $tones[$tone ?? 'primary'] ?? $tones['primary'] }}">
+<a href="{{ $href }}" class="group data-card flex items-center gap-4 transition hover:-translate-y-0.5 hover:border-[#078d45]/35">
+    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition {{ $tones[$tone ?? 'primary'] ?? $tones['primary'] }}">
         <span class="material-symbols-outlined icon-filled text-2xl">{{ $icon }}</span>
     </div>
-    <div class="space-y-1">
-        <p class="font-heading text-base font-bold text-[#172018]">{{ $title }}</p>
-        <p class="text-sm leading-6 text-[#5b6658]">{{ $description }}</p>
+    <div class="min-w-0 flex-1 space-y-1">
+        <p class="font-heading text-base font-extrabold text-[#061826]">{{ $title }}</p>
+        <p class="text-sm leading-6 text-[#5c6f62]">{{ $description }}</p>
     </div>
+    <span class="material-symbols-outlined text-lg text-[#9ca9a0] transition group-hover:translate-x-0.5 group-hover:text-[#078d45]">arrow_forward</span>
 </a>

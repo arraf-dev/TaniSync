@@ -1,148 +1,95 @@
 @extends('layouts.public', ['title' => 'TaniSync'])
 
 @section('content')
-    <section class="px-6 pb-16 pt-28 md:px-10 lg:px-12 lg:pb-24 lg:pt-36">
-        <div class="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-            <div class="space-y-8">
-                <div class="space-y-5">
-                    <span class="inline-flex rounded-full bg-[#dff2df] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-[#196b2c]">Sistem agritech desa</span>
-                    <h1 class="editorial-heading max-w-3xl font-heading text-5xl font-extrabold leading-[1.02] text-[#172018] md:text-7xl">
-                        Digitalisasi pencatatan hasil panen dan harga komoditas desa.
+    <section class="landing-hero relative isolate overflow-hidden px-6 pb-14 pt-28 md:px-10 lg:min-h-screen lg:px-12 lg:pb-16 lg:pt-24">
+        <div class="absolute inset-0 -z-30 bg-[#f8fbf7]"></div>
+        <img
+            src="{{ asset('images/tanisync/landing-hero-v3.png') }}"
+            alt="Ilustrasi petani menggunakan tablet di tengah sawah untuk memantau data TaniSync"
+            class="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover object-[66%_center]"
+        >
+        <div class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_32%,rgba(255,255,255,0.2)_58%,rgba(255,255,255,0)_100%)]"></div>
+        <div class="absolute inset-y-0 left-0 -z-10 w-[58%] bg-[radial-gradient(circle_at_20%_45%,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.72)_38%,rgba(255,255,255,0)_78%)]"></div>
+        <div class="absolute inset-x-0 bottom-0 -z-10 h-56 bg-[linear-gradient(0deg,rgba(248,251,247,1),rgba(248,251,247,0))]"></div>
+
+        <div class="mx-auto grid max-w-7xl gap-10 lg:min-h-[calc(100vh-7rem)] lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+            <div class="max-w-2xl space-y-8">
+                <div class="space-y-6">
+                    <p class="inline-flex items-center gap-2 rounded-full border border-[#15924f]/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#07843f] shadow-sm backdrop-blur">
+                        <span class="material-symbols-outlined icon-filled text-base">eco</span>
+                        Platform pertanian desa
+                    </p>
+                    <h1 class="font-heading text-4xl font-extrabold leading-[1.08] text-[#051927] sm:text-5xl md:text-6xl lg:text-7xl">
+                        Kelola Pertanian Lebih Cerdas dengan
+                        <span class="block text-[#078d45]">TaniSync</span>
                     </h1>
-                    <p class="max-w-xl text-lg leading-8 text-[#5b6658]">
-                        TaniSync membantu admin desa dan petani mencatat panen, memperbarui harga harian, dan menyiapkan laporan dengan alur yang singkat serta mudah dipahami.
+                    <p class="max-w-xl text-lg leading-8 text-[#3e5064] md:text-xl md:leading-9">
+                        Pantau hasil panen, harga komoditas, dan laporan usahatani desa dalam satu platform terintegrasi yang siap dipakai admin dan petani.
                     </p>
                 </div>
-                <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('login') }}" class="btn-primary px-8 py-4 text-base">
-                        Mulai masuk
-                        <span class="material-symbols-outlined text-xl">arrow_forward</span>
-                    </a>
-                    <a href="#fitur" class="btn-secondary px-8 py-4 text-base">
-                        Lihat fitur
-                        <span class="material-symbols-outlined text-xl">south</span>
-                    </a>
-                </div>
-                <div class="grid gap-4 sm:grid-cols-3">
-                    @foreach ([['2 peran', 'Admin desa & petani'], ['Input manual', 'Harga tetap bisa dicatat tanpa API'], ['Siap laporan', 'Ekspor PDF & Excel di tahap backend']] as [$title, $text])
-                        <div class="rounded-[1.5rem] border border-[#cad4c4]/70 bg-white/70 p-4">
-                            <p class="font-heading text-lg font-bold text-[#172018]">{{ $title }}</p>
-                            <p class="mt-1 text-sm leading-6 text-[#5b6658]">{{ $text }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            <div class="relative">
-                <div class="absolute inset-6 rounded-[2.5rem] bg-[#196b2c]/10 blur-3xl"></div>
-                <div class="relative overflow-hidden rounded-[2.5rem] border border-[#cad4c4]/50 bg-white p-3 shadow-[0_22px_48px_-28px_rgba(23,32,24,0.22)]">
-                    <img src="{{ $landing['heroImage'] }}" alt="Panorama area pertanian" class="h-[520px] w-full rounded-[2rem] object-cover">
-                    <div class="absolute bottom-8 left-8 right-8 rounded-[1.5rem] border border-white/30 bg-white/88 p-5 shadow-lg backdrop-blur">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#5b6658]">Update hari ini</p>
-                                <p class="mt-2 font-heading text-xl font-bold text-[#172018]">Harga cabai diperbarui manual admin</p>
-                                <p class="mt-1 text-sm text-[#5b6658]">Catatan panen terbaru langsung masuk ke rekap desa.</p>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#196b2c] text-white">
-                                <span class="material-symbols-outlined icon-filled text-2xl">monitoring</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <section id="fitur" class="px-6 py-20 md:px-10 lg:px-12">
-        <div class="mx-auto max-w-7xl space-y-12">
-            <div class="mx-auto max-w-3xl text-center">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#9c5421]">Fitur utama</p>
-                <h2 class="editorial-heading mt-3 font-heading text-4xl font-extrabold text-[#172018] md:text-5xl">Rangkaian screen yang rapi, konsisten, dan siap dipindahkan ke alur Laravel penuh.</h2>
-                <p class="mt-4 text-base leading-7 text-[#5b6658] md:text-lg">Semua halaman dibangun dengan token desain yang sama agar admin dan petani merasakan alur yang jelas dan tetap ringan dipakai di ponsel.</p>
-            </div>
-            <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                @foreach ($landing['featureCards'] as $feature)
-                    <div class="surface-muted h-full p-6">
-                        <div class="space-y-5">
-                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#196b2c]/10 text-[#196b2c]">
-                                <span class="material-symbols-outlined icon-filled text-3xl">{{ $feature['icon'] }}</span>
-                            </div>
-                            <div class="space-y-3">
-                                <h3 class="font-heading text-2xl font-extrabold text-[#172018]">{{ $feature['title'] }}</h3>
-                                <p class="text-sm leading-7 text-[#5b6658]">{{ $feature['description'] }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <a href="{{ route('register') }}" class="btn-primary btn-hero w-full sm:w-auto">
+                        Mulai Gratis
+                        <span class="material-symbols-outlined text-2xl">arrow_forward</span>
+                    </a>
+                    <a href="{{ route('login') }}" class="btn-secondary btn-hero-secondary w-full sm:w-auto">
+                        Masuk
+                    </a>
+                </div>
 
-    <section id="manfaat" class="bg-white px-6 py-20 md:px-10 lg:px-12">
-        <div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-            <div class="surface-muted bg-[radial-gradient(circle_at_top_right,rgba(25,107,44,0.12),transparent_40%),#f1f4ee] p-8">
-                <div class="space-y-6">
-                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#9c5421]">Kenapa TaniSync</p>
-                    <h2 class="editorial-heading font-heading text-4xl font-extrabold text-[#172018]">Dirancang untuk kerja lapangan yang cepat, bukan untuk membuat pengguna berputar-putar.</h2>
-                    <div class="space-y-5">
-                        @foreach (['Form panen singkat dan mobile-first untuk petani.', 'Harga harian tersimpan terstruktur dan mudah dicek ulang.', 'Dashboard admin fokus pada ringkasan desa, bukan metrik yang tidak relevan.', 'Siap dihubungkan ke Laravel tanpa ganti struktur tampilan.'] as $item)
-                            <div class="flex gap-3">
-                                <div class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#196b2c] text-white">
-                                    <span class="material-symbols-outlined icon-filled text-lg">check</span>
-                                </div>
-                                <p class="text-sm leading-7 text-[#5b6658]">{{ $item }}</p>
+                <div class="grid gap-3 rounded-[1.35rem] border border-white/80 bg-white/84 p-4 shadow-[0_20px_48px_-34px_rgba(5,25,39,0.3)] backdrop-blur">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-extrabold text-[#061826]">Ringkasan hari ini</p>
+                        <span class="status-pill status-success">Live</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        @foreach ([['12,4 ton', 'Panen'], ['Rp 12.500', 'Beras'], ['18%', 'Naik']] as [$value, $label])
+                            <div class="rounded-2xl bg-[#f2f7f1] p-3">
+                                <p class="font-heading text-lg font-extrabold text-[#061826]">{{ $value }}</p>
+                                <p class="mt-1 text-xs font-semibold text-[#718174]">{{ $label }}</p>
                             </div>
                         @endforeach
                     </div>
                 </div>
-            </div>
-            <div class="grid gap-6 sm:grid-cols-2">
-                @foreach ([['Transparansi data', 'Admin dan petani mengakses data dari sumber yang sama sehingga laporan lebih konsisten.'], ['Siap untuk desa', 'Bahasa antarmuka Indonesia, label jelas, dan struktur navigasi sederhana.'], ['Fallback manual', 'Harga komoditas tetap berjalan walau integrasi pihak ketiga belum ada.'], ['Ekspor terarah', 'Frontend sudah menyiapkan alur untuk PDF dan Excel sesuai PRD.']] as [$title, $description])
-                    <div class="surface-panel h-full p-6">
-                        <h3 class="font-heading text-2xl font-extrabold text-[#172018]">{{ $title }}</h3>
-                        <p class="mt-3 text-sm leading-7 text-[#5b6658]">{{ $description }}</p>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
 
-    <section id="alur" class="px-6 py-20 md:px-10 lg:px-12">
-        <div class="mx-auto max-w-7xl">
-            <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#9c5421]">Alur utama</p>
-                <h2 class="editorial-heading font-heading text-4xl font-extrabold text-[#172018]">Alur petani dan admin dibuat sejajar dengan PRD.</h2>
-                <p class="max-w-2xl text-base leading-7 text-[#5b6658]">Route publik, halaman per peran, dan binding data mock sudah dirangkai agar backend domain nanti bisa masuk tanpa mengubah arah visual.</p>
-            </div>
-            <div class="mt-10 grid gap-6 lg:grid-cols-2">
-                @foreach ([
-                    ['label' => 'Petani', 'tone' => 'bg-[#dff2df] text-[#196b2c]', 'steps' => ['Login ke aplikasi.', 'Catat panen dengan form singkat.', 'Lihat riwayat panen pribadi.', 'Bandingkan harga komoditas terbaru.']],
-                    ['label' => 'Admin desa', 'tone' => 'bg-[#ffebde] text-[#9c5421]', 'steps' => ['Masuk ke dashboard operasional desa.', 'Kelola master komoditas dan harga harian.', 'Pantau log panen yang masuk dari petani.', 'Buka laporan dan siapkan ekspor.']],
-                ] as $group)
-                    <div class="surface-panel p-8">
-                        <p class="text-xs font-bold uppercase tracking-[0.22em] {{ $group['label'] === 'Petani' ? 'text-[#196b2c]' : 'text-[#9c5421]' }}">{{ $group['label'] }}</p>
-                        <div class="mt-6 space-y-4">
-                            @foreach ($group['steps'] as $index => $step)
-                                <div class="flex gap-4">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-2xl font-heading font-bold {{ $group['tone'] }}">{{ $index + 1 }}</div>
-                                    <p class="pt-2 text-sm leading-7 text-[#5b6658]">{{ $step }}</p>
-                                </div>
-                            @endforeach
+                <div class="grid max-w-xl gap-3 sm:grid-cols-3">
+                    @foreach ([['2 peran', 'Admin dan petani'], ['Harga harian', 'Referensi komoditas'], ['Laporan desa', 'Rekap siap filter']] as [$title, $text])
+                        <div class="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-[0_16px_36px_-28px_rgba(5,25,39,0.5)] backdrop-blur">
+                            <p class="font-heading text-lg font-extrabold text-[#051927]">{{ $title }}</p>
+                            <p class="mt-1 text-sm leading-6 text-[#50637a]">{{ $text }}</p>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
+            <div class="hidden lg:block" aria-hidden="true"></div>
         </div>
     </section>
 
-    <section class="px-6 pb-20 md:px-10 lg:px-12">
-        <div class="mx-auto max-w-7xl rounded-[2.5rem] bg-[#196b2c] p-10 text-center text-white shadow-[0_12px_30px_-18px_rgba(25,107,44,0.18)] md:p-16">
-            <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#dff2df]">Siap dipakai</p>
-            <h2 class="mt-4 font-heading text-4xl font-extrabold md:text-5xl">Masuk ke alur Laravel Blade TaniSync sekarang.</h2>
-            <p class="mx-auto mt-4 max-w-2xl text-base leading-8 text-[#dff2df]">Landing page publik, auth, area petani, dan area admin sudah dipetakan ke Laravel Blade + Tailwind dengan route yang siap dikembangkan.</p>
-            <div class="mt-8 flex flex-wrap justify-center gap-4">
-                <a href="{{ route('login') }}" class="btn-secondary bg-white text-[#196b2c] hover:bg-[#f1f4ee]">Coba login</a>
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white transition duration-200 hover:bg-white/20">Buat akun</a>
+    <section id="fitur" class="relative bg-[#f8fbf7] px-6 py-16 md:px-10 lg:px-12 lg:py-20">
+        <div class="mx-auto max-w-7xl">
+            <div class="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div class="max-w-3xl">
+                    <p class="text-sm font-bold uppercase tracking-[0.18em] text-[#078d45]">Fitur utama</p>
+                    <h2 class="mt-3 font-heading text-4xl font-extrabold leading-tight text-[#051927] md:text-5xl">
+                        Semua alur penting pertanian desa berada dalam satu tempat.
+                    </h2>
+                </div>
+                <p class="max-w-md text-base leading-7 text-[#50637a]">
+                    Dibuat untuk pekerjaan nyata: petani mencatat panen, admin memperbarui harga, lalu laporan desa terbaca dari data yang sama.
+                </p>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                @foreach ($landing['featureCards'] as $feature)
+                    <article class="feature-card h-full">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#078d45]/10 text-[#078d45]">
+                            <span class="material-symbols-outlined icon-filled text-3xl">{{ $feature['icon'] }}</span>
+                        </div>
+                        <h3 class="mt-6 font-heading text-2xl font-extrabold text-[#051927]">{{ $feature['title'] }}</h3>
+                        <p class="mt-3 text-sm leading-7 text-[#50637a]">{{ $feature['description'] }}</p>
+                    </article>
+                @endforeach
             </div>
         </div>
     </section>

@@ -1,59 +1,399 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TaniSync
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+TaniSync adalah aplikasi web berbasis Laravel untuk membantu digitalisasi pencatatan panen dan harga komoditas pertanian di tingkat desa atau kelompok tani. Aplikasi ini dirancang agar admin desa/gapoktan dapat mengelola data komoditas, memperbarui harga harian, memantau catatan panen petani, dan melihat laporan ringkas dari data yang sudah masuk.
 
-## About Laravel
+Pada sisi petani, TaniSync menyediakan alur sederhana untuk melihat harga komoditas terbaru dan mencatat hasil panen pribadi. Data panen yang dimasukkan petani akan masuk ke database, lalu dapat ditinjau dan diverifikasi oleh admin.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tujuan Project
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Project ini dibuat sebagai MVP atau minimum viable product untuk sistem informasi pertanian desa. Fokus utama MVP adalah:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Mengubah pencatatan panen dari manual menjadi digital.
+- Menyimpan data komoditas, harga, pasar, petani, dan panen ke database.
+- Membagi akses aplikasi berdasarkan role pengguna.
+- Memberikan dashboard ringkas untuk admin dan petani.
+- Menyiapkan dasar laporan panen dan harga untuk pengembangan berikutnya.
 
-## Learning Laravel
+## Role Pengguna
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+TaniSync memiliki dua role utama:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Admin
 
-## Laravel Sponsors
+Admin adalah pengelola data desa atau gapoktan. Admin dapat:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Login ke dashboard admin.
+- Melihat ringkasan operasional desa.
+- Mengelola master data komoditas.
+- Menambah, mengubah, dan menonaktifkan komoditas.
+- Menginput harga harian komoditas.
+- Melihat seluruh catatan panen petani.
+- Mengubah status verifikasi panen.
+- Melihat laporan dasar berdasarkan data panen.
 
-### Premium Partners
+### Petani
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Petani adalah pengguna yang mencatat hasil panennya sendiri. Petani dapat:
 
-## Contributing
+- Login ke dashboard petani.
+- Melihat ringkasan panen pribadi.
+- Melihat referensi harga komoditas terbaru.
+- Mencatat hasil panen baru.
+- Melihat riwayat panen pribadi.
+- Menunggu data panen diverifikasi oleh admin.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Fitur Utama
 
-## Code of Conduct
+### 1. Autentikasi dan Role-Based Access
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+TaniSync menggunakan sistem autentikasi Laravel. Saat login, pengguna harus memilih role yang sesuai dengan akun:
 
-## Security Vulnerabilities
+- `admin`
+- `petani`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Jika email, password, dan role tidak cocok, login akan ditolak. Setelah berhasil login, pengguna diarahkan ke dashboard sesuai role.
 
-## License
+### 2. Dashboard Admin
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Dashboard admin menampilkan ringkasan data dari database, seperti:
+
+- Jumlah petani aktif.
+- Total panen bulan berjalan.
+- Jumlah komoditas aktif.
+- Jumlah catatan panen yang masih menunggu verifikasi.
+- Tren panen bulanan.
+- Distribusi komoditas berdasarkan volume panen.
+
+### 3. Dashboard Petani
+
+Dashboard petani menampilkan informasi yang relevan untuk petani, seperti:
+
+- Total panen pribadi bulan berjalan.
+- Jumlah komoditas aktif.
+- Harga komoditas terbaru.
+- Jumlah riwayat panen tersimpan.
+- Grafik sederhana hasil panen pribadi.
+
+### 4. Manajemen Komoditas
+
+Admin dapat mengelola data komoditas yang digunakan dalam form panen dan harga harian. Data komoditas meliputi:
+
+- Nama komoditas.
+- Kategori.
+- Satuan.
+- Harga acuan.
+- Status aktif atau nonaktif.
+
+Komoditas yang aktif akan muncul di form input panen petani dan form input harga admin.
+
+### 5. Harga Harian Komoditas
+
+Admin dapat menginput harga harian komoditas berdasarkan pasar tertentu. Data harga disimpan ke tabel harga harian dalam format JSON per komoditas.
+
+Harga terbaru akan ditampilkan kepada petani sebagai referensi sebelum menjual hasil panen.
+
+### 6. Catatan Panen Petani
+
+Petani dapat mencatat hasil panen dengan data:
+
+- Komoditas.
+- Tanggal panen.
+- Lokasi atau blok lahan.
+- Jumlah panen.
+- Satuan.
+- Kualitas panen.
+- Catatan tambahan.
+
+Setelah disimpan, data masuk ke tabel `catatan_panen` dengan status awal `menunggu`.
+
+### 7. Verifikasi Panen oleh Admin
+
+Admin dapat melihat semua catatan panen dari petani dan mengubah statusnya menjadi:
+
+- `menunggu`
+- `terverifikasi`
+- `butuh-review`
+
+Status ini membantu admin memilah data yang sudah siap masuk laporan dan data yang masih perlu dicek.
+
+### 8. Laporan Dasar
+
+Halaman laporan admin menampilkan data panen dari database dengan filter dasar:
+
+- Rentang tanggal.
+- Komoditas.
+- Petani.
+
+Laporan menampilkan:
+
+- Total panen.
+- Jumlah catatan terverifikasi.
+- Jumlah catatan menunggu.
+- Daftar catatan panen terbaru sesuai filter.
+
+Export PDF dan Excel belum aktif pada MVP ini, tetapi struktur halaman sudah disiapkan untuk pengembangan berikutnya.
+
+## Cara Kerja Aplikasi
+
+Alur kerja umum TaniSync:
+
+1. Admin membuat atau memastikan data komoditas tersedia.
+2. Admin menginput harga harian komoditas.
+3. Petani login dan melihat harga terbaru.
+4. Petani mencatat hasil panen.
+5. Data panen tersimpan di database dengan status `menunggu`.
+6. Admin memeriksa catatan panen yang masuk.
+7. Admin mengubah status panen menjadi `terverifikasi` atau `butuh-review`.
+8. Data yang sudah masuk dapat dilihat dalam dashboard dan laporan dasar.
+
+## Teknologi yang Digunakan
+
+Project ini menggunakan:
+
+- Laravel 12
+- PHP 8.2+
+- MySQL/MariaDB
+- phpMyAdmin untuk pengelolaan database lokal
+- Laravel Breeze untuk autentikasi
+- Blade template
+- Tailwind CSS
+- Vite
+- PHPUnit untuk testing
+
+## Struktur Database Utama
+
+Database yang digunakan bernama:
+
+```text
+tanisync
+```
+
+Tabel utama:
+
+| Tabel | Fungsi |
+| --- | --- |
+| `users` | Menyimpan akun admin dan petani |
+| `kategori_komoditas` | Menyimpan kategori komoditas |
+| `komoditas` | Menyimpan master data komoditas |
+| `pasar` | Menyimpan data pasar |
+| `harga_bapok_harian` | Menyimpan harga harian komoditas per pasar |
+| `catatan_panen` | Menyimpan data panen petani |
+| `sessions` | Menyimpan session login Laravel |
+| `cache` | Menyimpan cache Laravel |
+| `jobs` | Menyimpan job queue Laravel |
+
+## Konfigurasi Database
+
+Project ini menggunakan MySQL lokal dengan konfigurasi default XAMPP:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=tanisync
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Pastikan database `tanisync` sudah dibuat terlebih dahulu di phpMyAdmin sebelum menjalankan migration.
+
+## Cara Menjalankan Project
+
+### 1. Clone atau buka folder project
+
+Masuk ke folder project:
+
+```bash
+cd D:\Semester_6\capstoneProject\TaniSync
+```
+
+### 2. Install dependency PHP
+
+```bash
+composer install
+```
+
+### 3. Install dependency frontend
+
+```bash
+npm install
+```
+
+### 4. Siapkan file environment
+
+Jika belum ada `.env`, salin dari `.env.example`:
+
+```bash
+copy .env.example .env
+```
+
+Lalu generate application key:
+
+```bash
+php artisan key:generate
+```
+
+### 5. Buat database di phpMyAdmin
+
+Buka phpMyAdmin, lalu buat database baru:
+
+```text
+tanisync
+```
+
+### 6. Jalankan migration dan seeder
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Perintah ini akan:
+
+- Menghapus tabel lama.
+- Membuat ulang semua tabel.
+- Mengisi data awal untuk demo.
+
+### 7. Jalankan server Laravel
+
+```bash
+php artisan serve
+```
+
+Aplikasi biasanya berjalan di:
+
+```text
+http://127.0.0.1:8000
+```
+
+### 8. Jalankan Vite untuk development frontend
+
+Di terminal lain:
+
+```bash
+npm run dev
+```
+
+Untuk build production asset:
+
+```bash
+npm run build
+```
+
+## Akun Demo
+
+Seeder menyediakan akun demo berikut:
+
+### Admin
+
+```text
+Email: admin@tanisync.id
+Password: password123
+Role: admin
+```
+
+### Petani
+
+```text
+Email: rahmat@tanisync.id
+Password: password123
+Role: petani
+```
+
+Tambahan petani demo:
+
+```text
+Email: sari@tanisync.id
+Password: password123
+Role: petani
+```
+
+## Data Awal dari Seeder
+
+Seeder akan membuat data awal:
+
+- 1 akun admin.
+- 2 akun petani.
+- 4 kategori komoditas.
+- 5 komoditas.
+- 1 pasar.
+- 2 data harga harian.
+- 4 catatan panen demo.
+
+Data ini dapat dilihat langsung melalui phpMyAdmin setelah menjalankan:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Route Utama
+
+Beberapa route utama aplikasi:
+
+| Route | Role | Fungsi |
+| --- | --- | --- |
+| `/` | Publik | Landing page |
+| `/login` | Publik | Login |
+| `/register` | Publik | Registrasi |
+| `/dashboard` | Auth | Redirect sesuai role |
+| `/admin/dashboard` | Admin | Dashboard admin |
+| `/admin/commodities` | Admin | Manajemen komoditas |
+| `/admin/prices` | Admin | Input harga harian |
+| `/admin/harvests` | Admin | Monitoring dan verifikasi panen |
+| `/admin/reports` | Admin | Laporan dasar |
+| `/petani/dashboard` | Petani | Dashboard petani |
+| `/petani/prices` | Petani | Harga komoditas |
+| `/petani/harvests` | Petani | Riwayat panen |
+| `/petani/harvests/new` | Petani | Form catat panen |
+
+## Status Implementasi Saat Ini
+
+Status project setelah integrasi MVP backend:
+
+- Auth dan role access: sudah berjalan.
+- Database MySQL: sudah digunakan.
+- Seeder data awal: sudah tersedia.
+- Komoditas: sudah memakai database.
+- Harga harian: sudah memakai database.
+- Catatan panen: sudah memakai database.
+- Dashboard admin dan petani: sudah membaca database.
+- Laporan dasar: sudah membaca database.
+- Export PDF/Excel: belum diimplementasikan.
+- Grafik analitik lanjutan: belum diimplementasikan.
+- Audit log: belum diimplementasikan.
+- Validasi bisnis lanjutan: belum diimplementasikan.
+
+Estimasi progress MVP backend inti: sekitar 70-75%.
+
+## Testing
+
+Jalankan test Laravel:
+
+```bash
+php artisan test
+```
+
+Jalankan build frontend:
+
+```bash
+npm run build
+```
+
+Jika keduanya berhasil, berarti fitur dasar dan asset frontend berada dalam kondisi valid.
+
+## Catatan Pengembangan Selanjutnya
+
+Fitur yang direkomendasikan untuk tahap berikutnya:
+
+- Export laporan ke PDF.
+- Export laporan ke Excel.
+- Filter laporan yang lebih detail.
+- Grafik dashboard yang lebih informatif.
+- Hak akses admin yang lebih ketat untuk registrasi admin.
+- Upload gambar komoditas atau pasar.
+- Audit log aktivitas admin dan petani.
+- Validasi data panen berdasarkan musim atau batas realistis.
+- Deployment ke hosting atau VPS.
+
+## Ringkasan Singkat
+
+TaniSync adalah sistem informasi pertanian desa yang membantu admin dan petani mengelola data panen serta harga komoditas. Admin bertugas mengelola komoditas, harga, verifikasi panen, dan laporan. Petani bertugas mencatat panen dan melihat harga terbaru. Seluruh data inti MVP sudah diarahkan ke database MySQL bernama `tanisync`.

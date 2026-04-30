@@ -8,10 +8,12 @@
                 <p class="mt-2 max-w-sm text-sm leading-7 text-[#5b6658]">Pusat pencatatan panen dan harga komoditas desa yang dirancang mobile-first.</p>
             </div>
             <div class="space-y-6">
-                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80" alt="Lahan pertanian" class="h-[420px] w-full rounded-[2rem] object-cover">
+                <div class="visual-frame">
+                    <img src="{{ asset('images/tanisync/hero-dashboard.png') }}" alt="Ilustrasi dashboard TaniSync" class="h-[420px]">
+                </div>
                 <div class="rounded-[2rem] bg-white/80 p-6">
                     <h2 class="font-heading text-3xl font-extrabold text-[#172018]">Masuk ke dashboard yang sesuai dengan peran Anda.</h2>
-                    <p class="mt-3 text-sm leading-7 text-[#5b6658]">Admin memantau desa secara agregat, sementara petani fokus pada input panen dan harga terbaru.</p>
+                    <p class="mt-3 text-sm leading-7 text-[#5b6658]">Admin memantau desa secara agregat, sementara petani fokus pada input panen dan harga terbaru dari database.</p>
                 </div>
             </div>
         </section>
@@ -28,7 +30,6 @@
                 <div class="space-y-3">
                     <div class="flex items-center justify-between gap-3">
                         <p class="text-sm font-semibold text-[#5b6658]">Pilih peran akun</p>
-                        <p class="text-xs font-medium text-[#7b8578]">Wajib sesuai dengan akun demo yang dipakai</p>
                     </div>
                     <div class="grid gap-3 sm:grid-cols-2">
                     @foreach (['petani' => 'Fokus pada catat panen & harga', 'admin' => 'Kelola komoditas, harga, dan laporan'] as $role => $text)

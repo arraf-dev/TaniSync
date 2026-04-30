@@ -75,9 +75,11 @@
             <div class="space-y-3">
                 <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#9c5421]">Registrasi awal</p>
                 <h2 class="font-heading text-4xl font-extrabold text-[#172018]">Bangun fondasi akun untuk admin desa maupun petani.</h2>
-                <p class="text-sm leading-7 text-[#5b6658]">Form ini sudah memakai struktur user Laravel yang nanti cocok dengan role management TaniSync.</p>
+                <p class="text-sm leading-7 text-[#5b6658]">Form ini memakai struktur user Laravel yang terhubung dengan role management TaniSync.</p>
             </div>
-            <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80" alt="Area sawah" class="h-[520px] w-full rounded-[2rem] object-cover">
+            <div class="visual-frame">
+                <img src="{{ asset('images/tanisync/report-management.png') }}" alt="Ilustrasi manajemen laporan TaniSync" class="h-[520px]">
+            </div>
         </section>
     </div>
 @endsection

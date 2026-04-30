@@ -1,39 +1,98 @@
 @extends('layouts.app', ['title' => 'Komoditas Admin', 'pageTitle' => $pageTitle])
 
 @section('content')
-    <div class="space-y-8">
-        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#9c5421]">Master data</p>
-                <h2 class="editorial-heading font-heading text-4xl font-extrabold text-[#172018]">Manajemen komoditas</h2>
-                <p class="max-w-2xl text-base leading-7 text-[#5b6658]">Kelola daftar komoditas desa agar form panen dan harga harian tetap akurat.</p>
+    <div class="space-y-7">
+        @if (session('status'))
+            <div class="rounded-2xl border border-[#078d45]/20 bg-[#e6f7ed] px-4 py-3 text-sm font-semibold text-[#05753a]">{{ session('status') }}</div>
+        @endif
+
+        <div class="page-heading">
+            <div>
+                <p class="page-kicker">Master data</p>
+                <h2 class="page-title">Manajemen komoditas</h2>
+                <p class="page-copy">Kelola daftar komoditas desa agar form panen dan harga harian tetap akurat.</p>
             </div>
-            <button class="btn-primary">Tambah komoditas</button>
         </div>
 
-        <div class="surface-panel overflow-x-auto p-6 md:p-8">
-            <table class="min-w-full border-separate border-spacing-y-3">
+        <form method="POST" action="{{ route('admin.commodities.store') }}" class="section-panel">
+            @csrf
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[1.2fr_1fr_0.7fr_0.85fr_auto]">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Nama komoditas</label>
+                    <input name="nama_komoditas" value="{{ old('nama_komoditas') }}" class="field-input py-3" placeholder="Contoh: Tomat Lokal" required>
+                    @error('nama_komoditas') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Kategori</label>
+                    <select name="kategori_id" class="field-input py-3" required>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected(old('kategori_id') == $category->id)>{{ $category->nama_kategori }}</option>
+                        @endforeach
+                    </select>
+                    @error('kategori_id') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Satuan</label>
+                    <input name="satuan" value="{{ old('satuan', 'kg') }}" class="field-input py-3" required>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Harga acuan</label>
+                    <input type="number" min="0" step="100" name="harga_acuan" value="{{ old('harga_acuan') }}" class="field-input py-3" placeholder="0">
+                </div>
+                <div class="flex items-end">
+                    <button class="btn-primary w-full py-3" type="submit">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="data-table-wrap">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Komoditas</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Kategori</th>
-                        <th class="px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Satuan</th>
-                        <th class="px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Status</th>
+                        <th>Komoditas</th>
+                        <th>Kategori</th>
+                        <th class="text-center">Satuan</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($commodities as $commodity)
                         <tr>
-                            <td class="rounded-l-[1.5rem] bg-[#f1f4ee] px-4 py-4">
-                                <p class="font-heading text-base font-bold text-[#172018]">{{ $commodity['name'] }}</p>
-                                <p class="text-xs text-[#5b6658]">{{ $commodity['description'] }}</p>
+                            <td>
+                                <form id="commodity-update-{{ $commodity['id'] }}" method="POST" action="{{ route('admin.commodities.update', $commodity['id']) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                </form>
+                                <input form="commodity-update-{{ $commodity['id'] }}" name="nama_komoditas" value="{{ $commodity['name'] }}" class="field-input py-2 text-sm font-bold">
+                                <p class="mt-2 text-xs text-[#718174]">{{ $commodity['description'] }}</p>
                             </td>
-                            <td class="bg-[#f1f4ee] px-4 py-4">
-                                <span class="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">{{ $commodity['category'] }}</span>
+                            <td>
+                                <select form="commodity-update-{{ $commodity['id'] }}" name="kategori_id" class="field-input py-2 text-sm">
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}" @selected($commodity['category_id'] == $category->id)>{{ $category->nama_kategori }}</option>
+                                    @endforeach
+                                </select>
                             </td>
-                            <td class="bg-[#f1f4ee] px-4 py-4 text-center font-semibold text-[#172018]">{{ $commodity['unit'] }}</td>
-                            <td class="rounded-r-[1.5rem] bg-[#f1f4ee] px-4 py-4 text-center">
-                                <span class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] {{ $commodity['status'] === 'aktif' ? 'bg-[#dff2df] text-[#196b2c]' : 'bg-orange-100 text-[#9c5421]' }}">{{ $commodity['status'] }}</span>
+                            <td class="text-center">
+                                <input form="commodity-update-{{ $commodity['id'] }}" name="satuan" value="{{ $commodity['unit'] }}" class="field-input mx-auto w-24 py-2 text-center text-sm">
+                                <input form="commodity-update-{{ $commodity['id'] }}" type="hidden" name="harga_acuan" value="{{ $commodity['harga_acuan'] }}">
+                            </td>
+                            <td class="text-center">
+                                <span class="status-pill {{ $commodity['status'] === 'aktif' ? 'status-success' : 'status-warning' }}">{{ $commodity['status'] }}</span>
+                            </td>
+                            <td>
+                                <div class="flex justify-end gap-2">
+                                    <button form="commodity-update-{{ $commodity['id'] }}" class="btn-compact" type="submit">Simpan</button>
+                                    <form method="POST" action="{{ route('admin.commodities.toggle', $commodity['id']) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn-compact" type="submit">{{ $commodity['status'] === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' }}</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

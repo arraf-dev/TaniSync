@@ -1,21 +1,27 @@
 @extends('layouts.app', ['title' => 'Panen Admin', 'pageTitle' => $pageTitle])
 
 @section('content')
-    <div class="space-y-8">
-        <div class="space-y-3">
-            <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#9c5421]">Monitoring panen</p>
-            <h2 class="editorial-heading font-heading text-4xl font-extrabold text-[#172018]">Pantau log panen yang masuk</h2>
-            <p class="max-w-2xl text-base leading-7 text-[#5b6658]">Admin dapat meninjau catatan panen terbaru, memeriksa status verifikasi, dan menyiapkan data untuk laporan desa.</p>
+    <div class="space-y-7">
+        @if (session('status'))
+            <div class="rounded-2xl border border-[#078d45]/20 bg-[#e6f7ed] px-4 py-3 text-sm font-semibold text-[#05753a]">{{ session('status') }}</div>
+        @endif
+
+        <div class="page-heading">
+            <div>
+                <p class="page-kicker">Monitoring panen</p>
+                <h2 class="page-title">Pantau log panen yang masuk</h2>
+                <p class="page-copy">Tinjau catatan panen terbaru, periksa status verifikasi, dan siapkan data untuk laporan desa.</p>
+            </div>
         </div>
 
-        <div class="surface-panel p-5 md:p-6">
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="section-panel">
+            <div class="grid gap-4 md:grid-cols-3">
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Periode</label>
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Periode</label>
                     <input type="date" class="field-input py-3">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Komoditas</label>
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Komoditas</label>
                     <select class="field-input py-3">
                         <option>Semua komoditas</option>
                         @foreach ($harvests as $harvest)
@@ -24,7 +30,7 @@
                     </select>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Status</label>
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Status</label>
                     <select class="field-input py-3">
                         <option>Semua status</option>
                         <option>Terverifikasi</option>
@@ -35,32 +41,45 @@
             </div>
         </div>
 
-        <div class="surface-panel overflow-x-auto p-6 md:p-8">
-            <table class="min-w-full border-separate border-spacing-y-3">
+        <div class="data-table-wrap">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Petani</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Komoditas</th>
-                        <th class="px-4 py-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Jumlah</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Tanggal</th>
-                        <th class="px-4 py-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-[#5b6658]">Status</th>
+                        <th>Petani</th>
+                        <th>Komoditas</th>
+                        <th class="text-right">Jumlah</th>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                        <th class="text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($harvests as $harvest)
                         <tr>
-                            <td class="rounded-l-[1.5rem] bg-[#f1f4ee] px-4 py-4">
-                                <p class="font-heading text-base font-bold text-[#172018]">{{ $harvest['user_name'] }}</p>
-                                <p class="text-xs text-[#5b6658]">{{ $harvest['location'] }}</p>
+                            <td>
+                                <p class="font-heading text-base font-extrabold text-[#061826]">{{ $harvest['user_name'] }}</p>
+                                <p class="text-xs text-[#718174]">{{ $harvest['location'] }}</p>
                             </td>
-                            <td class="bg-[#f1f4ee] px-4 py-4">
-                                <p class="font-semibold text-[#172018]">{{ $harvest['commodity_name'] }}</p>
-                                <p class="text-xs text-[#5b6658]">{{ $harvest['quality'] }}</p>
+                            <td>
+                                <p class="font-semibold text-[#061826]">{{ $harvest['commodity_name'] }}</p>
+                                <p class="text-xs text-[#718174]">{{ $harvest['quality'] }}</p>
                             </td>
-                            <td class="bg-[#f1f4ee] px-4 py-4 text-right font-heading text-lg font-bold text-[#172018]">{{ $harvest['quantity'] }} {{ $harvest['unit'] }}</td>
-                            <td class="bg-[#f1f4ee] px-4 py-4 font-semibold text-[#172018]">{{ \Carbon\Carbon::parse($harvest['harvest_date'])->translatedFormat('d M Y') }}</td>
-                            <td class="rounded-r-[1.5rem] bg-[#f1f4ee] px-4 py-4">
-                                <span class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] {{ $harvest['status'] === 'terverifikasi' ? 'bg-[#dff2df] text-[#196b2c]' : ($harvest['status'] === 'menunggu' ? 'bg-orange-100 text-[#9c5421]' : 'bg-red-50 text-red-600') }}">{{ $harvest['status'] }}</span>
+                            <td class="text-right font-heading text-lg font-extrabold text-[#061826]">{{ $harvest['quantity'] }} {{ $harvest['unit'] }}</td>
+                            <td class="font-semibold">{{ \Carbon\Carbon::parse($harvest['harvest_date'])->translatedFormat('d M Y') }}</td>
+                            <td>
+                                <span class="status-pill {{ $harvest['status'] === 'terverifikasi' ? 'status-success' : ($harvest['status'] === 'menunggu' ? 'status-warning' : 'status-danger') }}">{{ $harvest['status'] }}</span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('admin.harvests.status', $harvest['id']) }}" class="flex justify-end gap-2">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select name="status" class="field-input w-40 py-2 text-sm">
+                                        <option value="menunggu" @selected($harvest['status'] === 'menunggu')>Menunggu</option>
+                                        <option value="terverifikasi" @selected($harvest['status'] === 'terverifikasi')>Terverifikasi</option>
+                                        <option value="butuh-review" @selected($harvest['status'] === 'butuh-review')>Butuh review</option>
+                                    </select>
+                                    <button class="btn-compact" type="submit">Simpan</button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

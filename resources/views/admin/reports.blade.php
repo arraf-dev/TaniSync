@@ -1,79 +1,111 @@
 @extends('layouts.app', ['title' => 'Laporan Admin', 'pageTitle' => $pageTitle])
 
 @section('content')
-    <div class="space-y-8">
-        <div class="space-y-3">
-            <p class="text-xs font-bold uppercase tracking-[0.24em] text-[#9c5421]">Laporan</p>
-            <h2 class="editorial-heading font-heading text-4xl font-extrabold text-[#172018]">Analitik dan ekspor</h2>
-            <p class="max-w-2xl text-base leading-7 text-[#5b6658]">Frontend Laravel ini menyiapkan alur laporan, filter, dan pilihan ekspor. Proses file aktual akan dihubungkan ke backend domain berikutnya.</p>
+    <div class="space-y-7">
+        <div class="page-heading">
+            <div>
+                <p class="page-kicker">Laporan</p>
+                <h2 class="page-title">Analitik dan ekspor</h2>
+                <p class="page-copy">Laporan MVP membaca data panen dari MySQL dengan filter dasar. Export PDF dan Excel disiapkan untuk tahap berikutnya.</p>
+            </div>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-            <div class="surface-panel space-y-6 p-6 md:p-8">
-                <div class="surface-panel p-5 shadow-none">
-                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Rentang tanggal</label>
-                            <input type="text" class="field-input py-3" placeholder="01 Apr 2026 - 10 Apr 2026">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Komoditas</label>
-                            <select class="field-input py-3">
-                                <option>Semua komoditas</option>
-                                @foreach ($prices as $price)
-                                    <option>{{ $price['commodity_name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-[0.16em] text-[#5b6658]">Petani</label>
-                            <select class="field-input py-3">
-                                <option>Semua petani</option>
-                                <option>Bapak Rahmat</option>
-                                <option>Ibu Sari</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end gap-3">
-                            <button class="btn-secondary">Reset</button>
-                            <button class="btn-primary">Terapkan</button>
-                        </div>
+        <form method="GET" action="{{ route('admin.reports') }}" class="section-panel">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Dari tanggal</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="field-input py-3">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Sampai tanggal</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="field-input py-3">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Komoditas</label>
+                    <select name="commodity_id" class="field-input py-3">
+                        <option value="">Semua komoditas</option>
+                        @foreach ($commodities as $commodity)
+                            <option value="{{ $commodity->id }}" @selected((string) request('commodity_id') === (string) $commodity->id)>{{ $commodity->nama_komoditas }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Petani</label>
+                    <select name="user_id" class="field-input py-3">
+                        <option value="">Semua petani</option>
+                        @foreach ($farmers as $farmer)
+                            <option value="{{ $farmer->id }}" @selected((string) request('user_id') === (string) $farmer->id)>{{ $farmer->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-3">
+                <a href="{{ route('admin.reports') }}" class="btn-secondary">Reset</a>
+                <button class="btn-primary" type="submit">Terapkan</button>
+            </div>
+        </form>
+
+        <div class="grid gap-4 md:grid-cols-3">
+            <div class="data-card">
+                <p class="text-sm font-semibold text-[#718174]">Total panen</p>
+                <p class="mt-2 font-heading text-3xl font-extrabold text-[#061826]">{{ number_format($report['total_quantity'], 2, ',', '.') }} kg</p>
+                <p class="mt-2 text-sm text-[#5c6f62]">Sesuai filter aktif</p>
+            </div>
+            <div class="data-card">
+                <p class="text-sm font-semibold text-[#718174]">Catatan diverifikasi</p>
+                <p class="mt-2 font-heading text-3xl font-extrabold text-[#061826]">{{ $report['verified_count'] }}</p>
+                <p class="mt-2 text-sm text-[#5c6f62]">Siap rekap</p>
+            </div>
+            <div class="data-card">
+                <p class="text-sm font-semibold text-[#718174]">Catatan menunggu</p>
+                <p class="mt-2 font-heading text-3xl font-extrabold text-[#061826]">{{ $report['pending_count'] }}</p>
+                <p class="mt-2 text-sm text-[#5c6f62]">Butuh tindak lanjut</p>
+            </div>
+        </div>
+
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Petani</th>
+                        <th>Komoditas</th>
+                        <th class="text-right">Jumlah</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($report['harvests'] as $harvest)
+                        <tr>
+                            <td class="font-semibold text-[#061826]">{{ $harvest['user_name'] }}</td>
+                            <td>
+                                <p class="font-semibold text-[#061826]">{{ $harvest['commodity_name'] }}</p>
+                                <p class="text-xs text-[#718174]">{{ $harvest['location'] }}</p>
+                            </td>
+                            <td class="text-right font-heading font-extrabold text-[#061826]">{{ $harvest['quantity'] }} {{ $harvest['unit'] }}</td>
+                            <td><span class="status-pill status-muted">{{ $harvest['status'] }}</span></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="rounded-2xl border border-[#e7eee5] bg-[#f7faf7] px-4 py-8 text-center text-sm text-[#718174]">Belum ada catatan panen untuk filter ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach ([['picture_as_pdf', 'Ekspor PDF', 'Belum aktif di MVP ini.'], ['table_view', 'Ekspor Excel', 'Belum aktif di MVP ini.']] as [$icon, $label, $desc])
+                <div class="data-card flex items-center gap-4">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#078d45]/10 text-[#078d45]">
+                        <span class="material-symbols-outlined icon-filled text-2xl">{{ $icon }}</span>
                     </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-heading text-base font-extrabold text-[#061826]">{{ $label }}</p>
+                        <p class="text-sm leading-6 text-[#5c6f62]">{{ $desc }}</p>
+                    </div>
+                    <button type="button" disabled class="btn-compact opacity-60">Segera</button>
                 </div>
-
-                <div class="grid gap-4 md:grid-cols-3">
-                    @foreach ([['Total panen', '4.2 ton', 'Periode berjalan'], ['Catatan diverifikasi', '18', 'Siap rekap'], ['Catatan menunggu', '3', 'Butuh tindak lanjut']] as [$label, $value, $detail])
-                        <div class="rounded-[1.5rem] bg-[#f1f4ee] p-5">
-                            <p class="text-sm font-semibold text-[#5b6658]">{{ $label }}</p>
-                            <p class="mt-2 font-heading text-3xl font-extrabold text-[#172018]">{{ $value }}</p>
-                            <p class="mt-2 text-sm text-[#5b6658]">{{ $detail }}</p>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="space-y-4">
-                    @foreach ([['picture_as_pdf', 'Ekspor PDF', 'Ringkasan formal untuk kebutuhan administrasi desa dan pelaporan rutin.'], ['table_view', 'Ekspor Excel', 'Format lanjutan untuk pengolahan data lebih detail di luar aplikasi.'], ['data_object', 'Ekspor JSON', 'Payload pengembang untuk validasi struktur data dan integrasi API.']] as [$icon, $label, $desc])
-                        <div class="surface-panel flex items-center gap-4 p-5">
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#196b2c]/10 text-[#196b2c]">
-                                <span class="material-symbols-outlined icon-filled text-2xl">{{ $icon }}</span>
-                            </div>
-                            <div class="flex-1 space-y-1">
-                                <p class="font-heading text-base font-bold text-[#172018]">{{ $label }}</p>
-                                <p class="text-sm leading-6 text-[#5b6658]">{{ $desc }}</p>
-                            </div>
-                            <button class="btn-secondary px-4 py-2.5">Unduh</button>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="surface-muted relative overflow-hidden p-0">
-                <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80" alt="Lanskap pertanian desa" class="h-full min-h-[420px] w-full object-cover">
-                <div class="absolute inset-x-8 bottom-8 rounded-[1.5rem] bg-white/90 p-6 backdrop-blur">
-                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#9c5421]">Catatan implementasi</p>
-                    <h3 class="mt-2 font-heading text-2xl font-extrabold text-[#172018]">Template laporan sudah siap.</h3>
-                    <p class="mt-3 text-sm leading-7 text-[#5b6658]">Tahap backend berikutnya cukup menghubungkan trigger ekspor ke endpoint Laravel dan generator file.</p>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 @endsection

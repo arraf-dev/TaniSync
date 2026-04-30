@@ -1,14 +1,20 @@
-<header class="glass-panel fixed inset-x-0 top-0 z-40 border-b border-[#cad4c4]/70">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-10">
-        <a href="{{ route('landing') }}" class="font-heading text-2xl font-extrabold text-[#196b2c]">TaniSync</a>
-        <nav class="hidden items-center gap-8 md:flex">
-            <a href="#fitur" class="text-sm font-semibold text-[#5b6658] transition hover:text-[#196b2c]">Fitur</a>
-            <a href="#manfaat" class="text-sm font-semibold text-[#5b6658] transition hover:text-[#196b2c]">Manfaat</a>
-            <a href="#alur" class="text-sm font-semibold text-[#5b6658] transition hover:text-[#196b2c]">Alur</a>
+<header class="public-nav fixed inset-x-0 top-0 z-40">
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-10">
+        <a href="{{ route('landing') }}" class="flex items-center gap-3 font-heading text-2xl font-extrabold text-[#078d45]" aria-label="TaniSync beranda">
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#078d45]/10 text-[#078d45]">
+                <span class="material-symbols-outlined icon-filled text-3xl">eco</span>
+            </span>
+            TaniSync
+        </a>
+
+        <nav class="hidden items-center gap-10 md:flex" aria-label="Navigasi utama">
+            <a href="{{ route('landing') }}" class="nav-link nav-link-active">Beranda</a>
+            <a href="#fitur" class="nav-link">Fitur</a>
         </nav>
+
         <div class="flex items-center gap-3">
-            <a href="{{ route('login') }}" class="btn-secondary hidden md:inline-flex">Login</a>
-            <a href="{{ route('register') }}" class="btn-primary">Daftar</a>
+            <a href="{{ route('login') }}" class="btn-nav-secondary hidden sm:inline-flex">Masuk</a>
+            <a href="{{ route('register') }}" class="btn-nav-primary">Daftar<span class="hidden sm:inline">&nbsp;Gratis</span></a>
         </div>
     </div>
 </header>

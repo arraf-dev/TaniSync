@@ -7,11 +7,15 @@
     ];
 @endphp
 
-<div class="surface-panel h-full p-6">
-    <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl {{ $tones[$tone ?? 'primary'] ?? $tones['primary'] }}">
-        <span class="material-symbols-outlined icon-filled text-2xl">{{ $icon }}</span>
+<div class="data-card h-full">
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="text-sm font-semibold text-[#718174]">{{ $label }}</p>
+            <p class="mt-2 font-heading text-2xl font-extrabold text-[#061826] md:text-3xl">{{ $value }}</p>
+        </div>
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl {{ $tones[$tone ?? 'primary'] ?? $tones['primary'] }}">
+            <span class="material-symbols-outlined icon-filled text-2xl">{{ $icon }}</span>
+        </div>
     </div>
-    <p class="text-sm font-semibold text-[#5b6658]">{{ $label }}</p>
-    <p class="mt-2 font-heading text-3xl font-extrabold text-[#172018]">{{ $value }}</p>
-    <p class="mt-2 text-sm text-[#5b6658]">{{ $detail }}</p>
+    <p class="mt-4 border-t border-[#eef4ed] pt-3 text-sm leading-6 text-[#5c6f62]">{{ $detail }}</p>
 </div>
