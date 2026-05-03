@@ -131,7 +131,7 @@ Laporan menampilkan:
 - Jumlah catatan menunggu.
 - Daftar catatan panen terbaru sesuai filter.
 
-Export PDF dan Excel belum aktif pada MVP ini, tetapi struktur halaman sudah disiapkan untuk pengembangan berikutnya.
+Export PDF server-side, Excel native `.xlsx`, dan CSV kompatibel Excel sudah aktif.
 
 ## Cara Kerja Aplikasi
 
@@ -336,33 +336,45 @@ Beberapa route utama aplikasi:
 | `/register` | Publik | Registrasi |
 | `/dashboard` | Auth | Redirect sesuai role |
 | `/admin/dashboard` | Admin | Dashboard admin |
+| `/admin/access-requests` | Admin | Persetujuan akses admin |
+| `/admin/activity-logs` | Admin | Audit aktivitas sistem |
 | `/admin/commodities` | Admin | Manajemen komoditas |
 | `/admin/prices` | Admin | Input harga harian |
 | `/admin/harvests` | Admin | Monitoring dan verifikasi panen |
 | `/admin/reports` | Admin | Laporan dasar |
+| `/admin/reports/print` | Admin | Versi cetak laporan |
+| `/admin/reports/export-pdf` | Admin | Export laporan PDF |
+| `/admin/reports/export-xlsx` | Admin | Export laporan Excel `.xlsx` |
+| `/admin/reports/export-csv` | Admin | Export laporan CSV |
 | `/petani/dashboard` | Petani | Dashboard petani |
 | `/petani/prices` | Petani | Harga komoditas |
 | `/petani/harvests` | Petani | Riwayat panen |
 | `/petani/harvests/new` | Petani | Form catat panen |
+| `/account/pending` | Admin pending | Status persetujuan akun |
 
 ## Status Implementasi Saat Ini
 
-Status project setelah integrasi MVP backend:
+Status project setelah finalisasi Tahap 3:
 
 - Auth dan role access: sudah berjalan.
-- Database MySQL: sudah digunakan.
-- Seeder data awal: sudah tersedia.
-- Komoditas: sudah memakai database.
-- Harga harian: sudah memakai database.
-- Catatan panen: sudah memakai database.
-- Dashboard admin dan petani: sudah membaca database.
-- Laporan dasar: sudah membaca database.
-- Export PDF/Excel: belum diimplementasikan.
-- Grafik analitik lanjutan: belum diimplementasikan.
-- Audit log: belum diimplementasikan.
-- Validasi bisnis lanjutan: belum diimplementasikan.
+- Persetujuan admin: akun admin baru masuk status menunggu dan harus disetujui admin aktif.
+- Status akun: user mendukung status `active`, `pending`, dan `rejected`.
+- Audit log: aktivitas penting pada akses admin, komoditas, harga, panen, print laporan, dan export laporan sudah tercatat.
+- Seeder data awal: sudah tersedia untuk demo admin dan petani.
+- Landing page: sudah dipoles dengan hero visual, CTA, fitur utama, dan footer profesional.
+- Komoditas: admin dapat menambah, mengubah, mengaktifkan/nonaktifkan data, mencari data, memfilter status, dan memakai pagination.
+- Harga harian: admin dapat menyimpan harga komoditas serta memfilter data berdasarkan pasar, tanggal, status, komoditas, dan pencarian.
+- Catatan panen: petani dapat mencatat panen, melihat riwayat pribadi, mencari riwayat, memfilter status/tanggal, dan memakai pagination.
+- Verifikasi panen: admin dapat mengubah status panen serta memfilter daftar panen berdasarkan petani, komoditas, status, tanggal, dan pencarian.
+- Dashboard admin dan petani: sudah menampilkan ringkasan data operasional.
+- Laporan dasar: sudah mendukung filter periode, komoditas, petani, status, pencarian, KPI ringkas, pagination, print view, export PDF, export Excel `.xlsx`, dan export CSV.
+- UI admin dan petani: sudah dipoles agar siap untuk demo capstone.
+- Validasi data: harga, panen, dan filter laporan sudah menolak input kosong, tidak aktif, tanggal tidak valid, tanggal masa depan, dan nilai tidak wajar.
+- Test otomatis: flow data, security, filter laporan, audit export, dan export file sudah memiliki coverage feature test.
+- Export laporan: PDF server-side, Excel native `.xlsx`, dan CSV kompatibel Excel sudah aktif.
+- Filter lanjutan, pagination, dan pencarian data: sudah aktif pada halaman data utama.
 
-Estimasi progress MVP backend inti: sekitar 70-75%.
+Estimasi progress MVP demo: sekitar 96%.
 
 ## Testing
 
@@ -378,20 +390,16 @@ Jalankan build frontend:
 npm run build
 ```
 
-Jika keduanya berhasil, berarti fitur dasar dan asset frontend berada dalam kondisi valid.
+Jika keduanya berhasil, berarti fitur dasar dan asset frontend berada dalam kondisi valid untuk demo.
 
 ## Catatan Pengembangan Selanjutnya
 
 Fitur yang direkomendasikan untuk tahap berikutnya:
 
-- Export laporan ke PDF.
-- Export laporan ke Excel.
-- Filter laporan yang lebih detail.
 - Grafik dashboard yang lebih informatif.
-- Hak akses admin yang lebih ketat untuk registrasi admin.
 - Upload gambar komoditas atau pasar.
-- Audit log aktivitas admin dan petani.
-- Validasi data panen berdasarkan musim atau batas realistis.
+- Validasi data lanjutan berdasarkan musim tanam atau batas produksi per komoditas.
+- Test otomatis lanjutan untuk laporan, filter, dan edge case data besar.
 - Deployment ke hosting atau VPS.
 
 ## Ringkasan Singkat

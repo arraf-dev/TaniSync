@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Admin Gapoktan',
                 'village' => 'Desa Sukamaju',
                 'role' => 'admin',
+                'account_status' => 'active',
+                'approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password123'),
             ]
@@ -38,6 +40,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Bapak Rahmat',
                 'village' => 'Desa Sukamaju',
                 'role' => 'petani',
+                'account_status' => 'active',
+                'approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password123'),
             ]
@@ -49,6 +53,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Ibu Sari',
                 'village' => 'Desa Sukamaju',
                 'role' => 'petani',
+                'account_status' => 'active',
+                'approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password123'),
             ]

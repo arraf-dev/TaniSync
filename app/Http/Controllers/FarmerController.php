@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Commodity;
+use App\Models\ActivityLog;
 use App\Models\DailyPrice;
 use App\Models\HarvestLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FarmerController extends Controller
 {
@@ -37,15 +39,35 @@ class FarmerController extends Controller
         ]);
     }
 
-    public function harvests(): View
+    public function harvests(Request $request): View
     {
+        $harvestsQuery = HarvestLog::with('commodity')
+            ->where('user_id', auth()->id())
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $status = $request->string('status')->toString();
+
+                if (in_array($status, ['menunggu', 'terverifikasi', 'butuh-review'], true)) {
+                    $query->where('status', $status);
+                }
+            })
+            ->when($request->filled('date_from'), fn ($query) => $query->whereDate('harvest_date', '>=', $request->date('date_from')))
+            ->when($request->filled('date_to'), fn ($query) => $query->whereDate('harvest_date', '<=', $request->date('date_to')))
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($query) use ($search): void {
+                    $query->where('location', 'like', "%{$search}%")
+                        ->orWhere('note', 'like', "%{$search}%")
+                        ->orWhereHas('commodity', fn ($commodityQuery) => $commodityQuery->where('nama_komoditas', 'like', "%{$search}%"));
+                });
+            })
+            ->latest('harvest_date');
+
         return view('petani.harvests', [
             'pageTitle' => 'Catatan panen pribadi',
-            'harvests' => HarvestLog::with('commodity')
-                ->where('user_id', auth()->id())
-                ->latest('harvest_date')
-                ->get()
-                ->map(fn (HarvestLog $harvest): array => $this->formatHarvest($harvest)),
+            'harvests' => $harvestsQuery
+                ->paginate(10)
+                ->withQueryString()
+                ->through(fn (HarvestLog $harvest): array => $this->formatHarvest($harvest)),
         ]);
     }
 
@@ -60,11 +82,11 @@ class FarmerController extends Controller
     public function storeHarvest(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'commodity_id' => ['required', 'exists:komoditas,id'],
-            'harvest_date' => ['required', 'date'],
+            'commodity_id' => ['required', Rule::exists('komoditas', 'id')->where('is_active', true)],
+            'harvest_date' => ['required', 'date', 'before_or_equal:today'],
             'location' => ['required', 'string', 'max:120'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
-            'unit' => ['required', 'string', 'max:20'],
+            'quantity' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
+            'unit' => ['required', Rule::in(['kg', 'kuintal', 'ton'])],
             'quality' => ['required', 'string', 'max:80'],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -73,6 +95,15 @@ class FarmerController extends Controller
             'user_id' => $request->user()->id,
             'status' => 'menunggu',
         ]);
+
+        ActivityLog::record(
+            'harvest_created',
+            "Catatan panen {$harvest->commodity?->nama_komoditas} dibuat oleh {$request->user()->name}.",
+            $harvest,
+            ['quantity' => $harvest->quantity, 'unit' => $harvest->unit],
+            $request->user(),
+            $request
+        );
 
         return redirect()
             ->route('petani.harvests')

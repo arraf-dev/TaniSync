@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\ActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,24 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended($request->user()->dashboardRoute());
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            ActivityLog::record(
+                'admin_login',
+                "{$user->name} masuk ke aplikasi sebagai admin.",
+                $user,
+                ['account_status' => $user->account_status],
+                $user,
+                $request
+            );
+        }
+
+        if ($user->role === 'admin' && ! $user->isActive()) {
+            return redirect()->route('account.pending');
+        }
+
+        return redirect()->intended($user->dashboardRoute());
     }
 
     /**

@@ -6,7 +6,7 @@
             <div>
                 <p class="page-kicker">Harga komoditas</p>
                 <h2 class="page-title">Pantau referensi harga terbaru</h2>
-                <p class="page-copy">Semua harga membaca data terbaru dari input admin di database MySQL.</p>
+                <p class="page-copy">Gunakan harga terbaru dari admin desa sebagai referensi sebelum menjual hasil panen.</p>
             </div>
         </div>
 

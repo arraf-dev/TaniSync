@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -38,15 +39,30 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $isAdmin = $request->role === 'admin';
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'village' => $request->village,
             'role' => $request->role,
+            'account_status' => $isAdmin ? 'pending' : 'active',
+            'approved_at' => $isAdmin ? null : now(),
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
+
+        ActivityLog::record(
+            $isAdmin ? 'admin_registered_pending' : 'farmer_registered',
+            $isAdmin
+                ? "{$user->name} mendaftar sebagai admin dan menunggu persetujuan."
+                : "{$user->name} mendaftar sebagai petani.",
+            $user,
+            ['role' => $user->role, 'account_status' => $user->account_status],
+            $user,
+            $request
+        );
 
         Auth::login($user);
 

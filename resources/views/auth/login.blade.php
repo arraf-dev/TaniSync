@@ -13,7 +13,7 @@
                 </div>
                 <div class="rounded-[2rem] bg-white/80 p-6">
                     <h2 class="font-heading text-3xl font-extrabold text-[#172018]">Masuk ke dashboard yang sesuai dengan peran Anda.</h2>
-                    <p class="mt-3 text-sm leading-7 text-[#5b6658]">Admin memantau desa secara agregat, sementara petani fokus pada input panen dan harga terbaru dari database.</p>
+                    <p class="mt-3 text-sm leading-7 text-[#5b6658]">Admin memantau data desa secara agregat, sementara petani fokus pada input panen dan harga terbaru.</p>
                 </div>
             </div>
         </section>

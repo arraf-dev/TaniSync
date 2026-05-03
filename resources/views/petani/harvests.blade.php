@@ -18,6 +18,36 @@
             </a>
         </div>
 
+        <form method="GET" action="{{ route('petani.harvests') }}" class="section-panel">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                <div class="space-y-2 xl:col-span-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Cari riwayat</label>
+                    <input name="search" value="{{ request('search') }}" class="field-input py-3" placeholder="Komoditas, lokasi, atau catatan">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Dari tanggal</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="field-input py-3">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Sampai tanggal</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="field-input py-3">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Status</label>
+                    <select name="status" class="field-input py-3">
+                        <option value="">Semua status</option>
+                        <option value="terverifikasi" @selected(request('status') === 'terverifikasi')>Terverifikasi</option>
+                        <option value="menunggu" @selected(request('status') === 'menunggu')>Menunggu</option>
+                        <option value="butuh-review" @selected(request('status') === 'butuh-review')>Butuh review</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end gap-3">
+                <a href="{{ route('petani.harvests') }}" class="btn-secondary">Reset</a>
+                <button class="btn-primary" type="submit">Terapkan</button>
+            </div>
+        </form>
+
         <div class="data-table-wrap">
             <table class="data-table">
                 <thead>
@@ -30,7 +60,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($harvests as $harvest)
+                    @forelse ($harvests as $harvest)
                         <tr>
                             <td>
                                 <p class="font-heading text-base font-extrabold text-[#061826]">{{ $harvest['commodity_name'] }}</p>
@@ -41,9 +71,16 @@
                             <td><span class="status-pill status-muted">{{ $harvest['quality'] }}</span></td>
                             <td><span class="status-pill {{ $harvest['status'] === 'terverifikasi' ? 'status-success' : ($harvest['status'] === 'menunggu' ? 'status-warning' : 'status-danger') }}">{{ $harvest['status'] }}</span></td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-sm font-semibold text-[#718174]">Tidak ada riwayat panen yang cocok dengan filter.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
+            <div class="mt-4">
+                {{ $harvests->links() }}
+            </div>
         </div>
     </div>
 @endsection

@@ -10,9 +10,9 @@ class TaniSyncMockData
             'heroImage' => 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1400&q=80',
             'featureCards' => [
                 ['title' => 'Pencatatan hasil panen', 'description' => 'Petani mencatat tanggal, komoditas, jumlah, satuan, lokasi, dan catatan dengan alur singkat.', 'icon' => 'rebase_edit'],
-                ['title' => 'Harga komoditas harian', 'description' => 'Admin desa memperbarui harga manual sebagai fallback utama yang tetap terstruktur.', 'icon' => 'payments'],
+                ['title' => 'Harga komoditas harian', 'description' => 'Admin desa memperbarui harga sebagai acuan petani sebelum menjual hasil panen.', 'icon' => 'payments'],
                 ['title' => 'Dashboard desa', 'description' => 'Ringkasan panen, tren bulanan, dan distribusi komoditas tersaji dalam panel yang mudah dibaca.', 'icon' => 'analytics'],
-                ['title' => 'Laporan & ekspor', 'description' => 'Alur ekspor PDF dan Excel sudah dipersiapkan untuk integrasi backend lanjutan.', 'icon' => 'description'],
+                ['title' => 'Laporan & rekap', 'description' => 'Rekap panen membantu admin meninjau produksi berdasarkan periode, petani, dan komoditas.', 'icon' => 'description'],
             ],
         ];
     }
@@ -32,7 +32,7 @@ class TaniSyncMockData
         return [
             ['id' => 'c-1', 'name' => 'Padi Ciherang', 'category' => 'Pangan', 'unit' => 'kg', 'status' => 'aktif', 'description' => 'Komoditas utama desa untuk panen sawah irigasi.'],
             ['id' => 'c-2', 'name' => 'Jagung Manis', 'category' => 'Pangan', 'unit' => 'kg', 'status' => 'aktif', 'description' => 'Dipanen mingguan untuk suplai pasar kecamatan.'],
-            ['id' => 'c-3', 'name' => 'Cabai Merah', 'category' => 'Hortikultura', 'unit' => 'kg', 'status' => 'aktif', 'description' => 'Harga manual diperbarui setiap pagi oleh admin.'],
+            ['id' => 'c-3', 'name' => 'Cabai Merah', 'category' => 'Hortikultura', 'unit' => 'kg', 'status' => 'aktif', 'description' => 'Harga diperbarui setiap pagi oleh admin.'],
             ['id' => 'c-4', 'name' => 'Kentang Lokal', 'category' => 'Umbi-umbian', 'unit' => 'kg', 'status' => 'aktif', 'description' => 'Data panen dipantau per blok lahan.'],
             ['id' => 'c-5', 'name' => 'Kedelai', 'category' => 'Palawija', 'unit' => 'kg', 'status' => 'nonaktif', 'description' => 'Sementara tidak masuk musim panen aktif.'],
         ];
@@ -41,9 +41,9 @@ class TaniSyncMockData
     public function prices(): array
     {
         return [
-            ['id' => 'p-1', 'commodity_id' => 'c-1', 'commodity_name' => 'Padi Ciherang', 'category' => 'Pangan', 'price' => 12500, 'effective_date' => '2026-04-10', 'source_note' => 'Input manual admin pasar desa', 'trend' => 'up', 'trend_percent' => 2.4],
+            ['id' => 'p-1', 'commodity_id' => 'c-1', 'commodity_name' => 'Padi Ciherang', 'category' => 'Pangan', 'price' => 12500, 'effective_date' => '2026-04-10', 'source_note' => 'Pembaruan admin pasar desa', 'trend' => 'up', 'trend_percent' => 2.4],
             ['id' => 'p-2', 'commodity_id' => 'c-2', 'commodity_name' => 'Jagung Manis', 'category' => 'Pangan', 'price' => 8100, 'effective_date' => '2026-04-10', 'source_note' => 'Perbandingan pengepul lokal', 'trend' => 'steady', 'trend_percent' => 0],
-            ['id' => 'p-3', 'commodity_id' => 'c-3', 'commodity_name' => 'Cabai Merah', 'category' => 'Hortikultura', 'price' => 43200, 'effective_date' => '2026-04-10', 'source_note' => 'Input manual admin pasar induk', 'trend' => 'down', 'trend_percent' => 1.6],
+            ['id' => 'p-3', 'commodity_id' => 'c-3', 'commodity_name' => 'Cabai Merah', 'category' => 'Hortikultura', 'price' => 43200, 'effective_date' => '2026-04-10', 'source_note' => 'Pembaruan admin pasar induk', 'trend' => 'down', 'trend_percent' => 1.6],
             ['id' => 'p-4', 'commodity_id' => 'c-4', 'commodity_name' => 'Kentang Lokal', 'category' => 'Umbi-umbian', 'price' => 18000, 'effective_date' => '2026-04-09', 'source_note' => 'Rekap kios mitra', 'trend' => 'up', 'trend_percent' => 0.8],
         ];
     }

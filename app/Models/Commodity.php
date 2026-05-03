@@ -34,4 +34,9 @@ class Commodity extends Model
     {
         return $this->hasMany(HarvestLog::class, 'commodity_id');
     }
+
+    public function statusLabel(): string
+    {
+        return $this->is_active ? 'aktif' : 'nonaktif';
+    }
 }

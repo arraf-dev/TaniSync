@@ -14,32 +14,53 @@
             </div>
         </div>
 
-        <div class="section-panel">
-            <div class="grid gap-4 md:grid-cols-3">
+        <form method="GET" action="{{ route('admin.harvests') }}" class="section-panel">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+                <div class="space-y-2 xl:col-span-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Cari</label>
+                    <input name="search" value="{{ request('search') }}" class="field-input py-3" placeholder="Petani, komoditas, lokasi, catatan">
+                </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Periode</label>
-                    <input type="date" class="field-input py-3">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Dari tanggal</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="field-input py-3">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Sampai tanggal</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="field-input py-3">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Komoditas</label>
-                    <select class="field-input py-3">
-                        <option>Semua komoditas</option>
-                        @foreach ($harvests as $harvest)
-                            <option>{{ $harvest['commodity_name'] }}</option>
+                    <select name="commodity_id" class="field-input py-3">
+                        <option value="">Semua komoditas</option>
+                        @foreach ($commodities as $commodity)
+                            <option value="{{ $commodity->id }}" @selected((string) request('commodity_id') === (string) $commodity->id)>{{ $commodity->nama_komoditas }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Status</label>
-                    <select class="field-input py-3">
-                        <option>Semua status</option>
-                        <option>Terverifikasi</option>
-                        <option>Menunggu</option>
-                        <option>Butuh review</option>
+                    <select name="status" class="field-input py-3">
+                        <option value="">Semua status</option>
+                        <option value="terverifikasi" @selected(request('status') === 'terverifikasi')>Terverifikasi</option>
+                        <option value="menunggu" @selected(request('status') === 'menunggu')>Menunggu</option>
+                        <option value="butuh-review" @selected(request('status') === 'butuh-review')>Butuh review</option>
                     </select>
                 </div>
             </div>
-        </div>
+            <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Petani</label>
+                    <select name="user_id" class="field-input py-3">
+                        <option value="">Semua petani</option>
+                        @foreach ($farmers as $farmer)
+                            <option value="{{ $farmer->id }}" @selected((string) request('user_id') === (string) $farmer->id)>{{ $farmer->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <a href="{{ route('admin.harvests') }}" class="btn-secondary py-3 text-center">Reset</a>
+                <button class="btn-primary py-3" type="submit">Terapkan</button>
+            </div>
+        </form>
 
         <div class="data-table-wrap">
             <table class="data-table">
@@ -54,7 +75,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($harvests as $harvest)
+                    @forelse ($harvests as $harvest)
                         <tr>
                             <td>
                                 <p class="font-heading text-base font-extrabold text-[#061826]">{{ $harvest['user_name'] }}</p>
@@ -82,9 +103,16 @@
                                 </form>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-sm font-semibold text-[#718174]">Tidak ada catatan panen yang cocok dengan filter.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
+            <div class="mt-4">
+                {{ $harvests->links() }}
+            </div>
         </div>
     </div>
 @endsection

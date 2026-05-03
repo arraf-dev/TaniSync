@@ -48,6 +48,25 @@
             </div>
         </form>
 
+        <form method="GET" action="{{ route('admin.commodities') }}" class="section-panel">
+            <div class="grid gap-4 md:grid-cols-[1fr_220px_auto_auto] md:items-end">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Cari komoditas</label>
+                    <input name="search" value="{{ request('search') }}" class="field-input py-3" placeholder="Nama komoditas atau kategori">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">Status</label>
+                    <select name="status" class="field-input py-3">
+                        <option value="">Semua status</option>
+                        <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+                        <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+                    </select>
+                </div>
+                <a href="{{ route('admin.commodities') }}" class="btn-secondary py-3 text-center">Reset</a>
+                <button class="btn-primary py-3" type="submit">Terapkan</button>
+            </div>
+        </form>
+
         <div class="data-table-wrap">
             <table class="data-table">
                 <thead>
@@ -60,7 +79,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($commodities as $commodity)
+                    @forelse ($commodities as $commodity)
                         <tr>
                             <td>
                                 <form id="commodity-update-{{ $commodity['id'] }}" method="POST" action="{{ route('admin.commodities.update', $commodity['id']) }}">
@@ -95,9 +114,16 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-sm font-semibold text-[#718174]">Tidak ada komoditas yang cocok dengan filter.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
+            <div class="mt-4">
+                {{ $commodities->links() }}
+            </div>
         </div>
     </div>
 @endsection

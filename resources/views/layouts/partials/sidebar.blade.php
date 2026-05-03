@@ -5,6 +5,8 @@
         ['label' => 'Harga', 'route' => 'admin.prices', 'icon' => 'payments'],
         ['label' => 'Panen', 'route' => 'admin.harvests', 'icon' => 'rebase_edit'],
         ['label' => 'Laporan', 'route' => 'admin.reports', 'icon' => 'analytics'],
+        ['label' => 'Akses', 'route' => 'admin.access-requests', 'icon' => 'verified_user'],
+        ['label' => 'Aktivitas', 'route' => 'admin.activity-logs', 'icon' => 'manage_history'],
     ];
     $farmerLinks = [
         ['label' => 'Beranda', 'route' => 'petani.dashboard', 'icon' => 'home'],
@@ -30,7 +32,7 @@
 
     <nav class="mt-10 flex flex-1 flex-col gap-1.5">
         @foreach ($links as $link)
-            @php $active = request()->routeIs($link['route']); @endphp
+            @php $active = request()->routeIs($link['route']) || request()->routeIs($link['route'].'.*'); @endphp
             <a href="{{ route($link['route']) }}" class="sidebar-link {{ $active ? 'sidebar-link-active' : 'sidebar-link-idle' }}">
                 <span class="material-symbols-outlined {{ $active ? 'icon-filled' : '' }} text-xl">{{ $link['icon'] }}</span>
                 <span>{{ $link['label'] }}</span>

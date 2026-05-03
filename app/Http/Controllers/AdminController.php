@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\HarvestReportExport;
 use App\Models\Category;
+use App\Models\ActivityLog;
 use App\Models\Commodity;
 use App\Models\DailyPrice;
 use App\Models\HarvestLog;
 use App\Models\Market;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Services\PriceService;
+use App\Services\ReportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -26,20 +35,103 @@ class AdminController extends Controller
             'metrics' => [
                 ['label' => 'Petani aktif', 'value' => User::where('role', 'petani')->count(), 'detail' => 'Akun petani terdaftar', 'icon' => 'groups', 'tone' => 'primary'],
                 ['label' => 'Total panen bulan ini', 'value' => number_format((float) $harvestsThisMonth->clone()->sum('quantity'), 2, ',', '.').' kg', 'detail' => $harvestsThisMonth->clone()->count().' catatan masuk', 'icon' => 'analytics', 'tone' => 'success'],
-                ['label' => 'Komoditas aktif', 'value' => Commodity::where('is_active', true)->count(), 'detail' => Commodity::where('is_active', false)->count().' komoditas nonaktif', 'icon' => 'compost', 'tone' => 'accent'],
+                ['label' => 'Admin menunggu', 'value' => User::where('role', 'admin')->where('account_status', 'pending')->count(), 'detail' => 'Perlu persetujuan akses', 'icon' => 'admin_panel_settings', 'tone' => 'accent'],
                 ['label' => 'Panen menunggu', 'value' => HarvestLog::where('status', 'menunggu')->count(), 'detail' => 'Perlu verifikasi admin', 'icon' => 'description', 'tone' => 'warning'],
             ],
             'trends' => $this->monthlyHarvestTrend(),
             'distribution' => $this->harvestDistribution(),
+            'recentActivities' => ActivityLog::with('user')->latest()->take(5)->get(),
+        ]);
+    }
+
+    public function accessRequests(): View
+    {
+        return view('admin.access-requests', [
+            'pageTitle' => 'Persetujuan akses admin',
+            'requests' => User::where('role', 'admin')
+                ->whereIn('account_status', ['pending', 'rejected'])
+                ->latest()
+                ->get(),
+        ]);
+    }
+
+    public function approveAccessRequest(Request $request, User $user): RedirectResponse
+    {
+        $this->ensureAdminRequest($user);
+
+        $user->update([
+            'account_status' => 'active',
+            'approved_at' => now(),
+            'approved_by' => $request->user()->id,
+            'rejected_at' => null,
+        ]);
+
+        ActivityLog::record(
+            'admin_access_approved',
+            "{$request->user()->name} menyetujui akses admin untuk {$user->name}.",
+            $user,
+            ['approved_user_id' => $user->id],
+            $request->user(),
+            $request
+        );
+
+        return redirect()->route('admin.access-requests')->with('status', 'Akses admin berhasil disetujui.');
+    }
+
+    public function rejectAccessRequest(Request $request, User $user): RedirectResponse
+    {
+        $this->ensureAdminRequest($user);
+
+        $user->update([
+            'account_status' => 'rejected',
+            'approved_at' => null,
+            'approved_by' => null,
+            'rejected_at' => now(),
+        ]);
+
+        ActivityLog::record(
+            'admin_access_rejected',
+            "{$request->user()->name} menolak akses admin untuk {$user->name}.",
+            $user,
+            ['rejected_user_id' => $user->id],
+            $request->user(),
+            $request
+        );
+
+        return redirect()->route('admin.access-requests')->with('status', 'Permintaan akses admin ditolak.');
+    }
+
+    public function activityLogs(): View
+    {
+        return view('admin.activity-logs', [
+            'pageTitle' => 'Aktivitas sistem',
+            'activities' => ActivityLog::with('user')->latest()->take(80)->get(),
         ]);
     }
 
     public function commodities(): View
     {
+        $commoditiesQuery = Commodity::with('category')
+            ->when(request('search'), function ($query, string $search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('nama_komoditas', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('nama_kategori', 'like', "%{$search}%"));
+                });
+            })
+            ->when(request('status'), function ($query, string $status): void {
+                if (in_array($status, ['aktif', 'nonaktif'], true)) {
+                    $query->where('is_active', $status === 'aktif');
+                }
+            })
+            ->latest();
+
         return view('admin.commodities', [
             'pageTitle' => 'Manajemen komoditas',
             'categories' => Category::where('is_active', true)->orderBy('nama_kategori')->get(),
-            'commodities' => Commodity::with('category')->latest()->get()->map(fn (Commodity $commodity): array => $this->formatCommodity($commodity)),
+            'commodities' => $commoditiesQuery
+                ->paginate(10)
+                ->withQueryString()
+                ->through(fn (Commodity $commodity): array => $this->formatCommodity($commodity)),
         ]);
     }
 
@@ -52,7 +144,9 @@ class AdminController extends Controller
             'harga_acuan' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        Commodity::create($validated + ['is_active' => true]);
+        $commodity = Commodity::create($validated + ['is_active' => true]);
+
+        ActivityLog::record('commodity_created', "Komoditas {$commodity->nama_komoditas} ditambahkan.", $commodity);
 
         return redirect()->route('admin.commodities')->with('status', 'Komoditas baru berhasil ditambahkan.');
     }
@@ -68,6 +162,8 @@ class AdminController extends Controller
 
         $commodity->update($validated);
 
+        ActivityLog::record('commodity_updated', "Komoditas {$commodity->nama_komoditas} diperbarui.", $commodity);
+
         return redirect()->route('admin.commodities')->with('status', 'Komoditas berhasil diperbarui.');
     }
 
@@ -75,37 +171,58 @@ class AdminController extends Controller
     {
         $commodity->update(['is_active' => ! $commodity->is_active]);
 
+        ActivityLog::record(
+            'commodity_status_toggled',
+            "Status komoditas {$commodity->nama_komoditas} diubah menjadi {$commodity->statusLabel()}.",
+            $commodity
+        );
+
         return redirect()->route('admin.commodities')->with('status', 'Status komoditas berhasil diubah.');
     }
 
-    public function prices(): View
+    public function prices(PriceService $prices): View
     {
         return view('admin.prices', [
             'pageTitle' => 'Update harga komoditas',
             'markets' => Market::where('is_active', true)->orderBy('nama_pasar')->get(),
             'commodities' => Commodity::where('is_active', true)->with('category')->orderBy('nama_komoditas')->get(),
-            'prices' => $this->latestPrices(),
+            'prices' => $prices->latestPrices(request()),
         ]);
     }
 
     public function storePrice(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'id_pasar' => ['required', 'exists:pasar,id'],
-            'tanggal' => ['required', 'date'],
+            'id_pasar' => ['required', Rule::exists('pasar', 'id')->where('is_active', true)],
+            'tanggal' => ['required', 'date', 'before_or_equal:today'],
             'prices' => ['required', 'array'],
-            'prices.*' => ['nullable', 'numeric', 'min:0'],
+            'prices.*' => ['nullable', 'numeric', 'min:1', 'max:100000000'],
             'status' => ['required', 'in:draft,submitted,verified'],
         ]);
 
+        $activeCommodityIds = Commodity::where('is_active', true)->pluck('id')->map(fn (int $id): string => (string) $id);
         $priceData = collect($validated['prices'])
+            ->only($activeCommodityIds)
             ->filter(fn ($price): bool => $price !== null && $price !== '')
             ->map(fn ($price): float => (float) $price)
             ->all();
 
-        DailyPrice::updateOrCreate(
+        if ($priceData === []) {
+            throw ValidationException::withMessages([
+                'prices' => 'Isi minimal satu harga komoditas aktif.',
+            ]);
+        }
+
+        $dailyPrice = DailyPrice::updateOrCreate(
             ['id_pasar' => $validated['id_pasar'], 'tanggal' => $validated['tanggal']],
             ['data_harga' => $priceData, 'status' => $validated['status'], 'created_by' => $request->user()->id]
+        );
+
+        ActivityLog::record(
+            'daily_price_saved',
+            'Harga harian komoditas berhasil disimpan.',
+            $dailyPrice,
+            ['tanggal' => $validated['tanggal'], 'jumlah_komoditas' => count($priceData)]
         );
 
         return redirect()->route('admin.prices')->with('status', 'Harga harian berhasil disimpan.');
@@ -113,9 +230,34 @@ class AdminController extends Controller
 
     public function harvests(): View
     {
+        $harvestsQuery = HarvestLog::with(['user', 'commodity'])
+            ->when(request('commodity_id'), fn ($query, string $id) => $query->where('commodity_id', $id))
+            ->when(request('user_id'), fn ($query, string $id) => $query->where('user_id', $id))
+            ->when(request('status'), function ($query, string $status): void {
+                if (in_array($status, ['menunggu', 'terverifikasi', 'butuh-review'], true)) {
+                    $query->where('status', $status);
+                }
+            })
+            ->when(request('date_from'), fn ($query, string $date) => $query->whereDate('harvest_date', '>=', $date))
+            ->when(request('date_to'), fn ($query, string $date) => $query->whereDate('harvest_date', '<=', $date))
+            ->when(request('search'), function ($query, string $search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('location', 'like', "%{$search}%")
+                        ->orWhere('note', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('commodity', fn ($commodityQuery) => $commodityQuery->where('nama_komoditas', 'like', "%{$search}%"));
+                });
+            })
+            ->latest('harvest_date');
+
         return view('admin.harvests', [
             'pageTitle' => 'Pantau log panen yang masuk',
-            'harvests' => HarvestLog::with(['user', 'commodity'])->latest('harvest_date')->get()->map(fn (HarvestLog $harvest): array => $this->formatHarvest($harvest)),
+            'commodities' => Commodity::where('is_active', true)->orderBy('nama_komoditas')->get(),
+            'farmers' => User::where('role', 'petani')->orderBy('name')->get(),
+            'harvests' => $harvestsQuery
+                ->paginate(10)
+                ->withQueryString()
+                ->through(fn (HarvestLog $harvest): array => $this->formatHarvest($harvest)),
         ]);
     }
 
@@ -127,43 +269,97 @@ class AdminController extends Controller
 
         $harvestLog->update($validated);
 
+        ActivityLog::record(
+            'harvest_status_updated',
+            "Status panen {$harvestLog->commodity?->nama_komoditas} diubah menjadi {$validated['status']}.",
+            $harvestLog,
+            ['status' => $validated['status']]
+        );
+
         return redirect()->route('admin.harvests')->with('status', 'Status panen berhasil diperbarui.');
     }
 
-    public function reports(Request $request): View
+    public function reports(Request $request, ReportService $reports, PriceService $prices): View
     {
-        $query = HarvestLog::with(['user', 'commodity']);
-
-        if ($request->filled('commodity_id')) {
-            $query->where('commodity_id', $request->integer('commodity_id'));
-        }
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->integer('user_id'));
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('harvest_date', '>=', $request->date('date_from'));
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('harvest_date', '<=', $request->date('date_to'));
-        }
-
-        $filteredHarvests = $query->get();
+        $report = $reports->pageData($reports->filters($request));
 
         return view('admin.reports', [
             'pageTitle' => 'Analitik dan ekspor',
-            'prices' => $this->latestPrices(),
+            'prices' => $prices->latestPrices($request),
             'commodities' => Commodity::where('is_active', true)->orderBy('nama_komoditas')->get(),
             'farmers' => User::where('role', 'petani')->orderBy('name')->get(),
-            'report' => [
-                'total_quantity' => $filteredHarvests->sum('quantity'),
-                'verified_count' => $filteredHarvests->where('status', 'terverifikasi')->count(),
-                'pending_count' => $filteredHarvests->where('status', 'menunggu')->count(),
-                'harvests' => $filteredHarvests->sortByDesc('harvest_date')->take(8)->map(fn (HarvestLog $harvest): array => $this->formatHarvest($harvest)),
-            ],
+            'report' => $report,
         ]);
+    }
+
+    public function reportPrint(Request $request, ReportService $reports): View
+    {
+        $filters = $reports->filters($request);
+        $rows = $reports->exportRows($filters);
+        $this->recordReportActivity($request, 'report_print_opened', 'print', $filters, $rows->count());
+
+        return view('admin.reports-print', [
+            'filters' => $filters,
+            'summary' => $reports->summary($rows),
+            'harvests' => $rows->map(fn (HarvestLog $harvest): array => $reports->formatHarvest($harvest)),
+        ]);
+    }
+
+    public function reportPdf(Request $request, ReportService $reports)
+    {
+        $filters = $reports->filters($request);
+        $rows = $reports->exportRows($filters);
+        $filename = 'laporan-panen-'.now()->format('Ymd-His').'.pdf';
+        $this->recordReportActivity($request, 'report_pdf_exported', 'pdf', $filters, $rows->count());
+
+        return Pdf::loadView('admin.reports-pdf', [
+            'filters' => $filters,
+            'summary' => $reports->summary($rows),
+            'harvests' => $rows->map(fn (HarvestLog $harvest): array => $reports->formatHarvest($harvest)),
+            'generatedAt' => now(),
+        ])
+            ->setPaper('a4', 'portrait')
+            ->download($filename);
+    }
+
+    public function reportXlsx(Request $request, ReportService $reports): BinaryFileResponse
+    {
+        $filters = $reports->filters($request);
+        $rows = $reports->exportRows($filters);
+        $filename = 'laporan-panen-'.now()->format('Ymd-His').'.xlsx';
+        $this->recordReportActivity($request, 'report_xlsx_exported', 'xlsx', $filters, $rows->count());
+
+        return Excel::download(new HarvestReportExport($rows), $filename);
+    }
+
+    public function reportCsv(Request $request, ReportService $reports): StreamedResponse
+    {
+        $filters = $reports->filters($request);
+        $rows = $reports->exportRows($filters);
+        $filename = 'laporan-panen-'.now()->format('Ymd-His').'.csv';
+        $this->recordReportActivity($request, 'report_csv_exported', 'csv', $filters, $rows->count());
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Tanggal', 'Petani', 'Komoditas', 'Lokasi', 'Jumlah', 'Satuan', 'Kualitas', 'Status', 'Catatan']);
+
+            foreach ($rows as $harvest) {
+                fputcsv($handle, [
+                    $harvest->harvest_date?->toDateString(),
+                    $harvest->user?->name,
+                    $harvest->commodity?->nama_komoditas,
+                    $harvest->location,
+                    (float) $harvest->quantity,
+                    $harvest->unit,
+                    $harvest->quality,
+                    $harvest->status,
+                    $harvest->note,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     private function formatCommodity(Commodity $commodity): array
@@ -180,6 +376,28 @@ class AdminController extends Controller
         ];
     }
 
+    /**
+     * @param  array<string, string|null>  $filters
+     */
+    private function recordReportActivity(Request $request, string $action, string $format, array $filters, int $rowCount): void
+    {
+        ActivityLog::record(
+            $action,
+            "Laporan panen dibuat dalam format {$format}.",
+            null,
+            ['format' => $format, 'filters' => $filters, 'row_count' => $rowCount],
+            $request->user(),
+            $request
+        );
+    }
+
+    private function ensureAdminRequest(User $user): void
+    {
+        if ($user->role !== 'admin' || $user->isActive()) {
+            abort(404);
+        }
+    }
+
     private function formatHarvest(HarvestLog $harvest): array
     {
         return [
@@ -194,35 +412,6 @@ class AdminController extends Controller
             'quality' => $harvest->quality,
             'status' => $harvest->status,
         ];
-    }
-
-    private function latestPrices(): array
-    {
-        $commodities = Commodity::where('is_active', true)->with('category')->orderBy('nama_komoditas')->get();
-        $dailyPrices = DailyPrice::with('market')->orderByDesc('tanggal')->orderByDesc('id')->get();
-
-        return $commodities->map(function (Commodity $commodity) use ($dailyPrices): array {
-            $latest = $dailyPrices->first(fn (DailyPrice $price): bool => array_key_exists((string) $commodity->id, $price->data_harga ?? []));
-            $previous = $dailyPrices
-                ->filter(fn (DailyPrice $price): bool => $latest && $price->id !== $latest->id && array_key_exists((string) $commodity->id, $price->data_harga ?? []))
-                ->first();
-
-            $currentPrice = $latest ? (float) $latest->data_harga[$commodity->id] : (float) ($commodity->harga_acuan ?? 0);
-            $previousPrice = $previous ? (float) $previous->data_harga[$commodity->id] : $currentPrice;
-            $delta = $previousPrice > 0 ? (($currentPrice - $previousPrice) / $previousPrice) * 100 : 0;
-
-            return [
-                'id' => 'price-'.$commodity->id,
-                'commodity_id' => $commodity->id,
-                'commodity_name' => $commodity->nama_komoditas,
-                'category' => $commodity->category?->nama_kategori ?? '-',
-                'price' => $currentPrice,
-                'effective_date' => $latest?->tanggal?->toDateString() ?? now()->toDateString(),
-                'source_note' => $latest?->market?->nama_pasar ?? 'Harga acuan komoditas',
-                'trend' => $delta > 0 ? 'up' : ($delta < 0 ? 'down' : 'steady'),
-                'trend_percent' => round(abs($delta), 1),
-            ];
-        })->all();
     }
 
     private function monthlyHarvestTrend(): array

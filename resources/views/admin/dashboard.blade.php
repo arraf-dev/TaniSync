@@ -9,6 +9,7 @@
                 <p class="page-copy">Pantau produktivitas desa, distribusi panen, dan tindakan utama dari satu ruang kerja yang ringkas.</p>
             </div>
             <div class="flex flex-wrap gap-3">
+                <a href="{{ route('admin.access-requests') }}" class="btn-secondary">Persetujuan admin</a>
                 <a href="{{ route('admin.prices') }}" class="btn-secondary">Update harga</a>
                 <a href="{{ route('admin.harvests') }}" class="btn-primary">Validasi panen</a>
             </div>
@@ -16,10 +17,10 @@
 
         <div class="section-panel flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-                <p class="text-sm font-bold text-[#078d45]">Database aktif</p>
-                <h3 class="mt-1 font-heading text-2xl font-extrabold text-[#061826]">Harga, panen, dan komoditas sudah terbaca dari MySQL.</h3>
+                <p class="text-sm font-bold text-[#078d45]">Pusat Data Operasional</p>
+                <h3 class="mt-1 font-heading text-2xl font-extrabold text-[#061826]">Pantau harga, panen, dan komoditas dalam satu dashboard.</h3>
             </div>
-            <p class="max-w-lg text-sm leading-7 text-[#5c6f62]">Gunakan halaman harga dan validasi panen untuk menjaga laporan desa tetap konsisten setiap minggu.</p>
+            <p class="max-w-lg text-sm leading-7 text-[#5c6f62]">Kelola pembaruan harga dan validasi panen secara terstruktur agar laporan desa selalu siap ditinjau.</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -79,8 +80,31 @@
 
         <div class="grid gap-4 lg:grid-cols-3">
             <x-tanisync.action-card href="{{ route('admin.commodities') }}" title="Tambah komoditas" description="Input master komoditas baru untuk desa." icon="add_circle" tone="primary" />
-            <x-tanisync.action-card href="{{ route('admin.prices') }}" title="Perbarui harga" description="Catat harga manual harian per komoditas." icon="price_change" tone="accent" />
+            <x-tanisync.action-card href="{{ route('admin.prices') }}" title="Perbarui harga" description="Tetapkan harga harian sebagai acuan petani dan laporan desa." icon="price_change" tone="accent" />
             <x-tanisync.action-card href="{{ route('admin.harvests') }}" title="Validasi panen" description="Tinjau log panen yang perlu verifikasi." icon="task_alt" tone="success" />
+        </div>
+
+        <div class="section-panel">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="page-kicker">Aktivitas sistem</p>
+                    <h3 class="mt-2 font-heading text-2xl font-extrabold text-[#061826]">Perubahan terbaru</h3>
+                </div>
+                <a href="{{ route('admin.activity-logs') }}" class="btn-compact">Lihat semua</a>
+            </div>
+            <div class="mt-6 space-y-3">
+                @forelse ($recentActivities as $activity)
+                    <div class="flex flex-col gap-2 rounded-2xl border border-[#e7eee5] bg-[#f7faf7] p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="font-semibold text-[#061826]">{{ $activity->description }}</p>
+                            <p class="text-xs text-[#718174]">{{ $activity->user?->name ?? 'Sistem' }}</p>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-[0.14em] text-[#718174]">{{ $activity->created_at->diffForHumans() }}</span>
+                    </div>
+                @empty
+                    <p class="rounded-2xl border border-[#e7eee5] bg-[#f7faf7] p-4 text-sm font-semibold text-[#718174]">Belum ada aktivitas yang tercatat.</p>
+                @endforelse
+            </div>
         </div>
     </div>
 @endsection

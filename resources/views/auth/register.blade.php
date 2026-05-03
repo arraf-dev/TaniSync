@@ -8,7 +8,7 @@
                 <div class="space-y-2">
                     <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#9c5421]">Daftar akun baru</p>
                     <h1 class="font-heading text-4xl font-extrabold text-[#172018]">Buat akun TaniSync</h1>
-                    <p class="text-sm leading-6 text-[#5b6658]">Registrasi awal ini menyiapkan akun Laravel dengan role admin atau petani.</p>
+                    <p class="text-sm leading-6 text-[#5b6658]">Daftarkan akun sesuai peran Anda. Akun admin akan ditinjau terlebih dahulu oleh pengelola aktif.</p>
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2">
@@ -74,8 +74,8 @@
         <section class="relative order-1 hidden overflow-hidden rounded-[2.5rem] border border-[#cad4c4]/70 bg-[#f1f4ee] p-10 shadow-[0_22px_48px_-28px_rgba(23,32,24,0.22)] lg:flex lg:flex-col lg:justify-between">
             <div class="space-y-3">
                 <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#9c5421]">Registrasi awal</p>
-                <h2 class="font-heading text-4xl font-extrabold text-[#172018]">Bangun fondasi akun untuk admin desa maupun petani.</h2>
-                <p class="text-sm leading-7 text-[#5b6658]">Form ini memakai struktur user Laravel yang terhubung dengan role management TaniSync.</p>
+                <h2 class="font-heading text-4xl font-extrabold text-[#172018]">Akses kerja yang sesuai untuk admin desa dan petani.</h2>
+                <p class="text-sm leading-7 text-[#5b6658]">Petani dapat langsung mencatat panen. Akses admin dijaga lewat proses persetujuan agar data desa tetap aman.</p>
             </div>
             <div class="visual-frame">
                 <img src="{{ asset('images/tanisync/report-management.png') }}" alt="Ilustrasi manajemen laporan TaniSync" class="h-[520px]">
