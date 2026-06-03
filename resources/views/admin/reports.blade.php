@@ -6,7 +6,7 @@
             <div>
                 <p class="page-kicker">Laporan</p>
                 <h2 class="page-title">Analitik dan ekspor</h2>
-                <p class="page-copy">Susun rekap panen berdasarkan periode, komoditas, dan petani untuk membantu evaluasi produksi desa.</p>
+                <p class="page-copy">Susun rekap panen berdasarkan periode, komoditas, dan petani untuk membantu evaluasi produksi organisasi.</p>
             </div>
         </div>
 

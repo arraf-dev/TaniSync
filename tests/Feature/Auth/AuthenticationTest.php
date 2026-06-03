@@ -33,6 +33,38 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('petani.dashboard', absolute: false));
     }
 
+    public function test_admin_can_authenticate_using_the_login_screen(): void
+    {
+        $user = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
+
+        $response = $this->post('/login', [
+            'role' => 'admin',
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('admin.dashboard', absolute: false));
+    }
+
+    public function test_super_admin_can_authenticate_using_the_login_screen(): void
+    {
+        $user = User::factory()->create([
+            'organization_id' => null,
+            'role' => 'super_admin',
+            'account_status' => 'active',
+        ]);
+
+        $response = $this->post('/login', [
+            'role' => 'super_admin',
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('platform.dashboard', absolute: false));
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create(['role' => 'petani']);

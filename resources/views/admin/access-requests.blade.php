@@ -10,7 +10,7 @@
             <div>
                 <p class="page-kicker">Kontrol akses</p>
                 <h2 class="page-title">Persetujuan akses admin</h2>
-                <p class="page-copy">Tinjau calon pengelola desa sebelum mereka dapat membuka dashboard admin.</p>
+                <p class="page-copy">Tinjau calon pengelola organisasi sebelum mereka dapat membuka dashboard admin.</p>
             </div>
         </div>
 
@@ -19,7 +19,7 @@
                 <thead>
                     <tr>
                         <th>Pengguna</th>
-                        <th>Desa / Gapoktan</th>
+                        <th>Organisasi</th>
                         <th>Status</th>
                         <th>Tanggal daftar</th>
                         <th class="text-right">Aksi</th>
@@ -32,7 +32,7 @@
                                 <p class="font-heading text-base font-extrabold text-[#061826]">{{ $candidate->name }}</p>
                                 <p class="text-xs text-[#718174]">{{ $candidate->email }}</p>
                             </td>
-                            <td class="font-semibold">{{ $candidate->village }}</td>
+                            <td class="font-semibold">{{ $candidate->organization?->name ?? $candidate->village }}</td>
                             <td>
                                 <span class="status-pill {{ $candidate->isRejected() ? 'status-danger' : 'status-warning' }}">
                                     {{ $candidate->isRejected() ? 'Ditolak' : 'Menunggu Persetujuan' }}

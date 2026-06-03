@@ -10,7 +10,7 @@
             <div>
                 <p class="page-kicker">Master data</p>
                 <h2 class="page-title">Manajemen komoditas</h2>
-                <p class="page-copy">Kelola daftar komoditas desa agar form panen dan harga harian tetap akurat.</p>
+                <p class="page-copy">Kelola daftar komoditas organisasi agar form panen dan harga harian tetap akurat.</p>
             </div>
         </div>
 

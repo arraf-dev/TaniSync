@@ -5,8 +5,8 @@
         <div class="page-heading">
             <div>
                 <p class="page-kicker">Dashboard admin</p>
-                <h2 class="page-title">Ringkasan operasional desa</h2>
-                <p class="page-copy">Pantau produktivitas desa, distribusi panen, dan tindakan utama dari satu ruang kerja yang ringkas.</p>
+                <h2 class="page-title">Ringkasan operasional organisasi</h2>
+                <p class="page-copy">Pantau produktivitas organisasi, distribusi panen, dan tindakan utama dari satu ruang kerja yang ringkas.</p>
             </div>
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('admin.access-requests') }}" class="btn-secondary">Persetujuan admin</a>
@@ -20,7 +20,7 @@
                 <p class="text-sm font-bold text-[#078d45]">Pusat Data Operasional</p>
                 <h3 class="mt-1 font-heading text-2xl font-extrabold text-[#061826]">Pantau harga, panen, dan komoditas dalam satu dashboard.</h3>
             </div>
-            <p class="max-w-lg text-sm leading-7 text-[#5c6f62]">Kelola pembaruan harga dan validasi panen secara terstruktur agar laporan desa selalu siap ditinjau.</p>
+            <p class="max-w-lg text-sm leading-7 text-[#5c6f62]">Kelola pembaruan harga dan validasi panen secara terstruktur agar laporan organisasi selalu siap ditinjau.</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -73,14 +73,14 @@
                 </div>
                 <div class="mt-6 rounded-[1.25rem] bg-[#061826] p-5 text-white">
                     <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#dff2df]">Catatan admin</p>
-                    <p class="mt-2 text-sm leading-7">Gunakan panel harga harian dan validasi panen untuk menjaga laporan desa tetap konsisten setiap minggu.</p>
+                    <p class="mt-2 text-sm leading-7">Gunakan panel harga harian dan validasi panen untuk menjaga laporan organisasi tetap konsisten setiap minggu.</p>
                 </div>
             </div>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-3">
-            <x-tanisync.action-card href="{{ route('admin.commodities') }}" title="Tambah komoditas" description="Input master komoditas baru untuk desa." icon="add_circle" tone="primary" />
-            <x-tanisync.action-card href="{{ route('admin.prices') }}" title="Perbarui harga" description="Tetapkan harga harian sebagai acuan petani dan laporan desa." icon="price_change" tone="accent" />
+            <x-tanisync.action-card href="{{ route('admin.commodities') }}" title="Tambah komoditas" description="Input master komoditas baru untuk organisasi." icon="add_circle" tone="primary" />
+            <x-tanisync.action-card href="{{ route('admin.prices') }}" title="Perbarui harga" description="Tetapkan harga harian sebagai acuan petani dan laporan organisasi." icon="price_change" tone="accent" />
             <x-tanisync.action-card href="{{ route('admin.harvests') }}" title="Validasi panen" description="Tinjau log panen yang perlu verifikasi." icon="task_alt" tone="success" />
         </div>
 

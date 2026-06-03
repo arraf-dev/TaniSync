@@ -17,14 +17,14 @@
                 <div class="space-y-6">
                     <p class="inline-flex items-center gap-2 rounded-full border border-[#15924f]/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#07843f] shadow-sm backdrop-blur">
                         <span class="material-symbols-outlined icon-filled text-base">eco</span>
-                        Platform pertanian desa
+                        Platform pertanian multi-organisasi
                     </p>
                     <h1 class="font-heading text-4xl font-extrabold leading-[1.08] text-[#051927] sm:text-5xl md:text-6xl lg:text-7xl">
                         Kelola Pertanian Lebih Cerdas dengan
                         <span class="block text-[#078d45]">TaniSync</span>
                     </h1>
                     <p class="max-w-xl text-lg leading-8 text-[#3e5064] md:text-xl md:leading-9">
-                        Pantau hasil panen, harga komoditas, dan laporan usahatani desa dalam satu platform terintegrasi yang siap dipakai admin dan petani.
+                        Pantau hasil panen, harga komoditas, dan laporan usahatani berbagai organisasi dalam satu platform terintegrasi yang siap dipakai admin dan petani.
                     </p>
                 </div>
 
@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="grid max-w-xl gap-3 sm:grid-cols-3">
-                    @foreach ([['2 peran', 'Admin dan petani'], ['Harga harian', 'Referensi komoditas'], ['Laporan desa', 'Rekap siap filter']] as [$title, $text])
+                    @foreach ([['3 peran', 'Platform, admin, petani'], ['Harga harian', 'Referensi komoditas'], ['Laporan organisasi', 'Rekap siap filter']] as [$title, $text])
                         <div class="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-[0_16px_36px_-28px_rgba(5,25,39,0.5)] backdrop-blur">
                             <p class="font-heading text-lg font-extrabold text-[#051927]">{{ $title }}</p>
                             <p class="mt-1 text-sm leading-6 text-[#50637a]">{{ $text }}</p>
@@ -72,11 +72,11 @@
                 <div class="max-w-3xl">
                     <p class="text-sm font-bold uppercase tracking-[0.18em] text-[#078d45]">Fitur utama</p>
                     <h2 class="mt-3 font-heading text-4xl font-extrabold leading-tight text-[#051927] md:text-5xl">
-                        Semua alur penting pertanian desa berada dalam satu tempat.
+                        Semua alur penting organisasi pertanian berada dalam satu tempat.
                     </h2>
                 </div>
                 <p class="max-w-md text-base leading-7 text-[#50637a]">
-                    Dibuat untuk pekerjaan nyata: petani mencatat panen, admin memperbarui harga, lalu laporan desa terbaca dari data yang sama.
+                    Dibuat untuk pekerjaan nyata: petani mencatat panen, admin memperbarui harga, lalu laporan organisasi terbaca dari data yang sama.
                 </p>
             </div>
 

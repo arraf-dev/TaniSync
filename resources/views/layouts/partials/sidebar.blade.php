@@ -14,19 +14,24 @@
         ['label' => 'Riwayat', 'route' => 'petani.harvests', 'icon' => 'history'],
         ['label' => 'Harga', 'route' => 'petani.prices', 'icon' => 'payments'],
     ];
-    $links = $role === 'admin' ? $adminLinks : $farmerLinks;
-    $actionRoute = $role === 'admin' ? route('admin.commodities') : route('petani.harvests.create');
-    $actionLabel = $role === 'admin' ? 'Tambah komoditas' : 'Catat panen';
+    $platformLinks = [
+        ['label' => 'Beranda', 'route' => 'platform.dashboard', 'icon' => 'space_dashboard'],
+        ['label' => 'Organisasi', 'route' => 'platform.organizations', 'icon' => 'domain'],
+    ];
+    $links = $role === 'super_admin' ? $platformLinks : ($role === 'admin' ? $adminLinks : $farmerLinks);
+    $homeRoute = $role === 'super_admin' ? route('platform.dashboard') : ($role === 'admin' ? route('admin.dashboard') : route('petani.dashboard'));
+    $actionRoute = $role === 'super_admin' ? route('platform.organizations') : ($role === 'admin' ? route('admin.commodities') : route('petani.harvests.create'));
+    $actionLabel = $role === 'super_admin' ? 'Tinjau organisasi' : ($role === 'admin' ? 'Tambah komoditas' : 'Catat panen');
 @endphp
 
 <aside class="sidebar-shell">
-    <a href="{{ $role === 'admin' ? route('admin.dashboard') : route('petani.dashboard') }}" class="flex items-center gap-3 px-2">
+    <a href="{{ $homeRoute }}" class="flex items-center gap-3 px-2">
         <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#078d45]/10 text-[#078d45]">
             <span class="material-symbols-outlined icon-filled text-3xl">eco</span>
         </span>
         <span>
             <span class="block font-heading text-2xl font-extrabold text-[#078d45]">TaniSync</span>
-            <span class="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#718174]">Agritech desa</span>
+            <span class="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#718174]">Agritech platform</span>
         </span>
     </a>
 
@@ -41,7 +46,7 @@
     </nav>
 
     <a href="{{ $actionRoute }}" class="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#061826] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#078d45]">
-        <span class="material-symbols-outlined icon-filled text-xl">add_circle</span>
+        <span class="material-symbols-outlined icon-filled text-xl">{{ $role === 'super_admin' ? 'domain' : 'add_circle' }}</span>
         {{ $actionLabel }}
     </a>
 

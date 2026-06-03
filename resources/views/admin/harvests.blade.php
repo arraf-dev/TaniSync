@@ -10,7 +10,7 @@
             <div>
                 <p class="page-kicker">Monitoring panen</p>
                 <h2 class="page-title">Pantau log panen yang masuk</h2>
-                <p class="page-copy">Tinjau catatan panen terbaru, periksa status verifikasi, dan siapkan data untuk laporan desa.</p>
+                <p class="page-copy">Tinjau catatan panen terbaru, periksa status verifikasi, dan siapkan data untuk laporan organisasi.</p>
             </div>
         </div>
 

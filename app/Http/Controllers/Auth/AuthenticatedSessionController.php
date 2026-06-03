@@ -31,10 +31,10 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        if ($user->role === 'admin') {
+        if (in_array($user->role, ['super_admin', 'admin'], true)) {
             ActivityLog::record(
-                'admin_login',
-                "{$user->name} masuk ke aplikasi sebagai admin.",
+                $user->role === 'super_admin' ? 'super_admin_login' : 'admin_login',
+                "{$user->name} masuk ke aplikasi sebagai {$user->role}.",
                 $user,
                 ['account_status' => $user->account_status],
                 $user,

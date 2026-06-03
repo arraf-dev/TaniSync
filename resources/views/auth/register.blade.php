@@ -11,15 +11,15 @@
         'admin' => [
             'icon' => 'admin_panel_settings',
             'label' => 'Admin',
-            'description' => 'Akun masuk antrean persetujuan sebelum membuka dashboard admin.',
-            'status' => 'Perlu persetujuan',
+            'description' => 'Ajukan organisasi baru dan tunggu approval platform.',
+            'status' => 'Approval platform',
         ],
     ];
 
     $flowSteps = [
-        ['value' => '01', 'label' => 'Petani aktif langsung'],
-        ['value' => '02', 'label' => 'Admin perlu persetujuan'],
-        ['value' => '03', 'label' => 'Masuk sesuai role'],
+        ['value' => '01', 'label' => 'Petani pilih organisasi'],
+        ['value' => '02', 'label' => 'Admin ajukan organisasi'],
+        ['value' => '03', 'label' => 'Akses sesuai approval'],
     ];
 @endphp
 
@@ -50,7 +50,7 @@
                     <div class="rounded-[1.5rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_44px_-34px_rgba(5,25,39,0.28)] backdrop-blur">
                         <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#9c5421]">Alur akses TaniSync</p>
                         <h2 class="mt-2 font-heading text-2xl font-extrabold leading-tight text-[#172018] sm:text-3xl">
-                            Pilih role sejak awal agar dashboard terbuka sesuai tanggung jawab.
+                            Pilih role dan organisasi agar data tetap terpisah antar wilayah kerja.
                         </h2>
                         <div class="mt-5 grid gap-3 sm:grid-cols-3">
                             @foreach ($flowSteps as $step)
@@ -66,7 +66,7 @@
         </section>
 
         <section class="flex items-center justify-center">
-            <form method="POST" action="{{ route('register') }}" class="surface-panel w-full max-w-xl space-y-6 p-5 sm:p-7 lg:p-8">
+            <form method="POST" action="{{ route('register') }}" x-data="{ role: '{{ old('role', 'petani') }}' }" class="surface-panel w-full max-w-xl space-y-6 p-5 sm:p-7 lg:p-8">
                 @csrf
 
                 <div class="space-y-3 border-b border-[#e6efe3] pb-6">
@@ -74,7 +74,7 @@
                     <div class="space-y-2">
                         <h1 class="font-heading text-3xl font-extrabold leading-tight text-[#172018] sm:text-4xl">Buat akun TaniSync</h1>
                         <p class="text-sm leading-6 text-[#5b6658]">
-                            Isi identitas sesuai role. Petani dapat langsung memakai aplikasi, sedangkan admin akan masuk proses persetujuan.
+                            Petani bergabung ke organisasi aktif. Admin baru mengajukan organisasi dan menunggu approval super admin.
                         </p>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                     <div class="grid gap-3 sm:grid-cols-2">
                         @foreach ($roles as $role => $item)
                             <label class="cursor-pointer">
-                                <input type="radio" name="role" value="{{ $role }}" class="peer sr-only" {{ old('role', 'petani') === $role ? 'checked' : '' }}>
+                                <input type="radio" name="role" value="{{ $role }}" x-model="role" class="peer sr-only" {{ old('role', 'petani') === $role ? 'checked' : '' }}>
                                 <span class="flex min-h-[142px] flex-col justify-between rounded-[1.35rem] border border-[#cad4c4] bg-[#f7faf7] p-4 text-[#5b6658] transition peer-checked:border-[#078d45] peer-checked:bg-[#e7f6eb] peer-checked:text-[#078d45] peer-focus-visible:ring-4 peer-focus-visible:ring-[#078d45]/10">
                                     <span class="flex items-start gap-3">
                                         <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
@@ -106,16 +106,51 @@
                     @error('role') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <div class="grid gap-5 md:grid-cols-2">
+                <div class="grid gap-5">
                     <div class="space-y-2">
                         <label for="name" class="text-sm font-semibold text-[#5b6658]">Nama lengkap</label>
                         <input id="name" name="name" type="text" value="{{ old('name') }}" required autofocus class="field-input" placeholder="Contoh: Bapak Rahmat">
                         @error('name') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
+                </div>
+
+                <div x-show="role === 'petani'" class="space-y-2">
+                    <label for="organization_id" class="text-sm font-semibold text-[#5b6658]">Organisasi aktif</label>
+                    <select id="organization_id" name="organization_id" x-bind:required="role === 'petani'" class="field-input">
+                        <option value="">Pilih organisasi</option>
+                        @foreach ($organizations as $organization)
+                            <option value="{{ $organization->id }}" @selected((string) old('organization_id') === (string) $organization->id)>{{ $organization->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('organization_id') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div x-show="role === 'admin'" class="grid gap-5 md:grid-cols-2">
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="organization_name" class="text-sm font-semibold text-[#5b6658]">Nama organisasi</label>
+                        <input id="organization_name" name="organization_name" type="text" value="{{ old('organization_name') }}" x-bind:required="role === 'admin'" class="field-input" placeholder="Contoh: Gapoktan Sukamaju">
+                        @error('organization_name') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
                     <div class="space-y-2">
-                        <label for="village" class="text-sm font-semibold text-[#5b6658]">Desa / Gapoktan</label>
-                        <input id="village" name="village" type="text" value="{{ old('village', 'Desa Sukamaju') }}" required class="field-input" placeholder="Desa Sukamaju">
-                        @error('village') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                        <label for="organization_type" class="text-sm font-semibold text-[#5b6658]">Tipe organisasi</label>
+                        <select id="organization_type" name="organization_type" x-bind:required="role === 'admin'" class="field-input">
+                            <option value="gapoktan" @selected(old('organization_type', 'gapoktan') === 'gapoktan')>Gapoktan</option>
+                            <option value="desa" @selected(old('organization_type') === 'desa')>Desa</option>
+                            <option value="koperasi" @selected(old('organization_type') === 'koperasi')>Koperasi</option>
+                            <option value="komunitas" @selected(old('organization_type') === 'komunitas')>Komunitas</option>
+                            <option value="lainnya" @selected(old('organization_type') === 'lainnya')>Lainnya</option>
+                        </select>
+                        @error('organization_type') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="space-y-2">
+                        <label for="region" class="text-sm font-semibold text-[#5b6658]">Wilayah</label>
+                        <input id="region" name="region" type="text" value="{{ old('region') }}" class="field-input" placeholder="Kecamatan / kabupaten">
+                        @error('region') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="address" class="text-sm font-semibold text-[#5b6658]">Alamat organisasi</label>
+                        <textarea id="address" name="address" rows="3" class="field-input" placeholder="Alamat lengkap bila ada">{{ old('address') }}</textarea>
+                        @error('address') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
@@ -143,7 +178,7 @@
                             <span class="material-symbols-outlined icon-filled text-xl">info</span>
                         </span>
                         <p class="text-sm leading-6 text-[#5c6f62]">
-                            Setelah submit, petani diarahkan ke dashboard petani. Admin diarahkan ke halaman status sampai akses disetujui pengelola aktif.
+                            Petani aktif setelah bergabung ke organisasi. Admin diarahkan ke halaman status sampai organisasi disetujui super admin.
                         </p>
                     </div>
                 </div>

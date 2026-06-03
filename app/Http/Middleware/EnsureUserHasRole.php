@@ -21,6 +21,10 @@ class EnsureUserHasRole
             abort(Response::HTTP_FORBIDDEN);
         }
 
+        if (in_array($user->role, ['admin', 'petani'], true) && ! $user->organization_id) {
+            return redirect()->route('account.pending');
+        }
+
         if ($user->role === 'admin' && ! $user->isActive()) {
             return redirect()->route('account.pending');
         }

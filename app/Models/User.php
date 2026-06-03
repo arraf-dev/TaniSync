@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'organization_id',
         'village',
         'role',
         'account_status',
@@ -59,6 +60,10 @@ class User extends Authenticatable
 
     public function dashboardRoute(): string
     {
+        if ($this->role === 'super_admin') {
+            return route('platform.dashboard');
+        }
+
         if ($this->role === 'admin' && ! $this->isActive()) {
             return route('account.pending');
         }
@@ -69,6 +74,11 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return $this->account_status === 'active';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isPendingApproval(): bool
@@ -84,6 +94,11 @@ class User extends Authenticatable
     public function approver(): BelongsTo
     {
         return $this->belongsTo(self::class, 'approved_by');
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public function harvestLogs(): HasMany

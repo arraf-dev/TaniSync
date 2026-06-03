@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Commodity;
 use App\Models\DailyPrice;
+use App\Models\DailyPriceItem;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -13,9 +14,11 @@ class PriceService
     public function latestPrices(?Request $request = null): LengthAwarePaginator
     {
         $request ??= request();
+        $organizationId = $request->user()?->organization_id;
         $hasDailyPriceFilters = $this->hasDailyPriceFilters($request);
 
-        $commodities = Commodity::where('is_active', true)
+        $commodities = Commodity::forOrganization($organizationId)
+            ->where('is_active', true)
             ->with('category')
             ->when($request->filled('commodity_id'), fn ($query) => $query->whereKey($request->integer('commodity_id')))
             ->when($request->filled('search'), function ($query) use ($request): void {
@@ -29,7 +32,8 @@ class PriceService
             ->orderBy('nama_komoditas')
             ->get();
 
-        $dailyPrices = DailyPrice::with('market')
+        $dailyPrices = DailyPrice::forOrganization($organizationId)
+            ->with(['market', 'items'])
             ->when($request->filled('market_id'), fn ($query) => $query->where('id_pasar', $request->integer('market_id')))
             ->when($request->filled('status'), function ($query) use ($request): void {
                 $status = $request->string('status')->toString();
@@ -103,12 +107,19 @@ class PriceService
 
     private function hasCommodityPrice(DailyPrice $price, Commodity $commodity): bool
     {
-        return array_key_exists((string) $commodity->id, $price->data_harga ?? [])
+        return $price->items->contains(fn (DailyPriceItem $item): bool => $item->commodity_id === $commodity->id)
+            || array_key_exists((string) $commodity->id, $price->data_harga ?? [])
             || array_key_exists($commodity->id, $price->data_harga ?? []);
     }
 
     private function commodityPrice(DailyPrice $price, Commodity $commodity): float
     {
+        $item = $price->items->first(fn (DailyPriceItem $item): bool => $item->commodity_id === $commodity->id);
+
+        if ($item) {
+            return (float) $item->price;
+        }
+
         return (float) (($price->data_harga ?? [])[(string) $commodity->id] ?? ($price->data_harga ?? [])[$commodity->id]);
     }
 

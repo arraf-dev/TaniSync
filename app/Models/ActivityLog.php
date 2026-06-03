@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 class ActivityLog extends Model
 {
     protected $fillable = [
+        'organization_id',
         'user_id',
         'action',
         'description',
@@ -24,6 +26,11 @@ class ActivityLog extends Model
         'metadata' => 'array',
     ];
 
+    public function scopeForOrganization(Builder $query, ?int $organizationId): Builder
+    {
+        return $query->where('organization_id', $organizationId);
+    }
+
     public static function record(
         string $action,
         string $description,
@@ -36,6 +43,7 @@ class ActivityLog extends Model
         $actor ??= $request?->user();
 
         return self::create([
+            'organization_id' => $metadata['organization_id'] ?? $subject?->organization_id ?? $actor?->organization_id,
             'user_id' => $actor?->id,
             'action' => $action,
             'description' => $description,
@@ -50,6 +58,11 @@ class ActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public function subject(): MorphTo

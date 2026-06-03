@@ -1,5 +1,10 @@
 @php
-    $links = $role === 'admin'
+    $links = $role === 'super_admin'
+        ? [
+            ['label' => 'Beranda', 'route' => 'platform.dashboard', 'icon' => 'space_dashboard'],
+            ['label' => 'Org', 'route' => 'platform.organizations', 'icon' => 'domain'],
+        ]
+        : ($role === 'admin'
         ? [
             ['label' => 'Beranda', 'route' => 'admin.dashboard', 'icon' => 'home'],
             ['label' => 'Panen', 'route' => 'admin.harvests', 'icon' => 'rebase_edit'],
@@ -12,7 +17,7 @@
             ['label' => 'Catat', 'route' => 'petani.harvests.create', 'icon' => 'add_circle'],
             ['label' => 'Riwayat', 'route' => 'petani.harvests', 'icon' => 'history'],
             ['label' => 'Harga', 'route' => 'petani.prices', 'icon' => 'payments'],
-        ];
+        ]);
 @endphp
 
 <nav class="fixed bottom-0 left-0 right-0 z-40 flex h-20 items-center justify-around border-t border-[#dfe8dc] bg-white/90 px-4 shadow-[0_-18px_42px_-34px_rgba(5,25,39,0.5)] backdrop-blur-xl md:hidden">

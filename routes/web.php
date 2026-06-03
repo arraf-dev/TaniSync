@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AccountStatusController;
 use App\Http\Controllers\FarmerController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,13 @@ Route::get('/dashboard', function () {
 Route::get('/account/pending', [AccountStatusController::class, 'pending'])
     ->middleware('auth')
     ->name('account.pending');
+
+Route::middleware(['auth', 'role:super_admin'])->prefix('platform')->name('platform.')->group(function () {
+    Route::get('/dashboard', [PlatformController::class, 'dashboard'])->name('dashboard');
+    Route::get('/organizations', [PlatformController::class, 'organizations'])->name('organizations');
+    Route::patch('/organizations/{organization}/approve', [PlatformController::class, 'approveOrganization'])->name('organizations.approve');
+    Route::patch('/organizations/{organization}/reject', [PlatformController::class, 'rejectOrganization'])->name('organizations.reject');
+});
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');

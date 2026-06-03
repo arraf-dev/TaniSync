@@ -29,7 +29,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email'],
-            'role' => ['required', 'in:admin,petani'],
+            'role' => ['required', 'in:super_admin,admin,petani'],
             'password' => ['required', 'string'],
         ];
     }

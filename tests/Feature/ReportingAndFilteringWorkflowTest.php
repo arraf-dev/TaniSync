@@ -8,6 +8,7 @@ use App\Models\Commodity;
 use App\Models\DailyPrice;
 use App\Models\HarvestLog;
 use App\Models\Market;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,12 +20,12 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_active_admin_can_open_report_print_view(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $this->actingAs($admin)
             ->get(route('admin.reports.print', ['status' => 'terverifikasi']))
             ->assertOk()
-            ->assertSee('Laporan Panen Desa')
+            ->assertSee('Laporan Panen Organisasi')
             ->assertSee('Petani A')
             ->assertDontSee('Petani B');
 
@@ -71,7 +72,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_csv_export_downloads_filtered_report_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.reports.export-csv', ['status' => 'terverifikasi']));
@@ -91,7 +92,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_pdf_export_downloads_filtered_report_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.reports.export-pdf', ['status' => 'terverifikasi']));
@@ -110,7 +111,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_xlsx_export_downloads_filtered_report_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.reports.export-xlsx', ['status' => 'terverifikasi']));
@@ -133,7 +134,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_report_filters_change_visible_results(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $this->actingAs($admin)
             ->get(route('admin.reports', ['status' => 'butuh-review']))
@@ -146,7 +147,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_report_filters_reject_invalid_input(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        $this->reportFixture();
+        $this->reportFixture($admin->organization);
 
         $this->actingAs($admin)
             ->from(route('admin.reports'))
@@ -163,10 +164,11 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_admin_harvest_pagination_keeps_filter_query(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        [$commodity, , $farmer] = $this->reportFixture();
+        [$commodity, , $farmer] = $this->reportFixture($admin->organization);
 
         for ($i = 0; $i < 11; $i++) {
             HarvestLog::create([
+                'organization_id' => $admin->organization_id,
                 'user_id' => $farmer->id,
                 'commodity_id' => $commodity->id,
                 'harvest_date' => now()->subDays($i)->toDateString(),
@@ -189,6 +191,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         [$commodity, , $farmer, $otherFarmer] = $this->reportFixture();
 
         HarvestLog::create([
+            'organization_id' => $farmer->organization_id,
             'user_id' => $farmer->id,
             'commodity_id' => $commodity->id,
             'harvest_date' => now()->toDateString(),
@@ -200,6 +203,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         ]);
 
         HarvestLog::create([
+            'organization_id' => $farmer->organization_id,
             'user_id' => $otherFarmer->id,
             'commodity_id' => $commodity->id,
             'harvest_date' => now()->toDateString(),
@@ -220,9 +224,10 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_commodity_search_filters_results(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        [$commodity] = $this->reportFixture();
+        [$commodity] = $this->reportFixture($admin->organization);
 
         Commodity::create([
+            'organization_id' => $admin->organization_id,
             'nama_komoditas' => 'Cabai Merah',
             'satuan' => 'kg',
             'harga_acuan' => 30000,
@@ -240,8 +245,9 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_price_filters_return_matching_market_data(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        [$commodity, $market] = $this->reportFixture();
+        [$commodity, $market] = $this->reportFixture($admin->organization);
         $otherMarket = Market::create([
+            'organization_id' => $admin->organization_id,
             'nama_pasar' => 'Pasar Luar Desa',
             'tipe' => 'tradisional',
             'alamat_lengkap' => 'Jl. Luar Desa',
@@ -249,20 +255,22 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         ]);
 
         DailyPrice::create([
+            'organization_id' => $admin->organization_id,
             'id_pasar' => $market->id,
             'tanggal' => now()->toDateString(),
             'data_harga' => [$commodity->id => 12500],
             'status' => 'verified',
             'created_by' => $admin->id,
-        ]);
+        ])->items()->create(['commodity_id' => $commodity->id, 'price' => 12500]);
 
         DailyPrice::create([
+            'organization_id' => $admin->organization_id,
             'id_pasar' => $otherMarket->id,
             'tanggal' => now()->subDay()->toDateString(),
             'data_harga' => [$commodity->id => 11000],
             'status' => 'draft',
             'created_by' => $admin->id,
-        ]);
+        ])->items()->create(['commodity_id' => $commodity->id, 'price' => 11000]);
 
         $this->actingAs($admin)
             ->get(route('admin.prices', ['market_id' => $otherMarket->id, 'status' => 'draft']))
@@ -275,8 +283,9 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     public function test_price_filters_do_not_fallback_to_reference_prices(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'account_status' => 'active']);
-        [$commodity, $market] = $this->reportFixture();
+        [$commodity, $market] = $this->reportFixture($admin->organization);
         $referenceOnlyCommodity = Commodity::create([
+            'organization_id' => $admin->organization_id,
             'nama_komoditas' => 'Kedelai Lokal',
             'satuan' => 'kg',
             'harga_acuan' => 9800,
@@ -285,12 +294,13 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         ]);
 
         DailyPrice::create([
+            'organization_id' => $admin->organization_id,
             'id_pasar' => $market->id,
             'tanggal' => now()->toDateString(),
             'data_harga' => [$commodity->id => 12500],
             'status' => 'verified',
             'created_by' => $admin->id,
-        ]);
+        ])->items()->create(['commodity_id' => $commodity->id, 'price' => 12500]);
 
         $this->actingAs($admin)
             ->get(route('admin.prices', ['market_id' => $market->id]))
@@ -320,14 +330,17 @@ class ReportingAndFilteringWorkflowTest extends TestCase
     /**
      * @return array{0: Commodity, 1: Market, 2: User, 3: User}
      */
-    private function reportFixture(): array
+    private function reportFixture(?Organization $organization = null): array
     {
+        $organization ??= Organization::factory()->create();
+
         $category = Category::create([
             'nama_kategori' => 'Pangan',
             'is_active' => true,
         ]);
 
         $commodity = Commodity::create([
+            'organization_id' => $organization->id,
             'nama_komoditas' => 'Padi Ciherang',
             'satuan' => 'kg',
             'harga_acuan' => 12000,
@@ -336,16 +349,18 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         ]);
 
         $market = Market::create([
+            'organization_id' => $organization->id,
             'nama_pasar' => 'Pasar Desa',
             'tipe' => 'tradisional',
             'alamat_lengkap' => 'Jl. Desa',
             'is_active' => true,
         ]);
 
-        $farmerA = User::factory()->create(['role' => 'petani', 'name' => 'Petani A']);
-        $farmerB = User::factory()->create(['role' => 'petani', 'name' => 'Petani B']);
+        $farmerA = User::factory()->create(['organization_id' => $organization->id, 'role' => 'petani', 'name' => 'Petani A']);
+        $farmerB = User::factory()->create(['organization_id' => $organization->id, 'role' => 'petani', 'name' => 'Petani B']);
 
         HarvestLog::create([
+            'organization_id' => $organization->id,
             'user_id' => $farmerA->id,
             'commodity_id' => $commodity->id,
             'harvest_date' => now()->subDay()->toDateString(),
@@ -357,6 +372,7 @@ class ReportingAndFilteringWorkflowTest extends TestCase
         ]);
 
         HarvestLog::create([
+            'organization_id' => $organization->id,
             'user_id' => $farmerB->id,
             'commodity_id' => $commodity->id,
             'harvest_date' => now()->subDays(2)->toDateString(),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Commodity;
 use App\Models\ActivityLog;
 use App\Models\DailyPrice;
+use App\Models\DailyPriceItem;
 use App\Models\HarvestLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,13 +17,14 @@ class FarmerController extends Controller
     public function dashboard(): View
     {
         $user = auth()->user();
-        $harvests = HarvestLog::where('user_id', $user->id);
+        $organizationId = $user->organization_id;
+        $harvests = HarvestLog::forOrganization($organizationId)->where('user_id', $user->id);
 
         return view('petani.dashboard', [
             'pageTitle' => 'Ringkasan panen dan harga terbaru',
             'metrics' => [
                 ['label' => 'Panen bulan ini', 'value' => number_format((float) $harvests->clone()->whereDate('harvest_date', '>=', now()->startOfMonth())->sum('quantity'), 2, ',', '.').' kg', 'detail' => 'Total catatan milik Anda', 'icon' => 'eco', 'tone' => 'primary'],
-                ['label' => 'Komoditas aktif', 'value' => Commodity::where('is_active', true)->count().' jenis', 'detail' => 'Tersedia untuk dicatat', 'icon' => 'agriculture', 'tone' => 'accent'],
+                ['label' => 'Komoditas aktif', 'value' => Commodity::forOrganization($organizationId)->where('is_active', true)->count().' jenis', 'detail' => 'Tersedia untuk dicatat', 'icon' => 'agriculture', 'tone' => 'accent'],
                 ['label' => 'Harga terakhir', 'value' => 'Rp '.number_format($this->latestPrices()[0]['price'] ?? 0, 0, ',', '.'), 'detail' => $this->latestPrices()[0]['commodity_name'] ?? 'Belum ada harga', 'icon' => 'trending_up', 'tone' => 'success'],
                 ['label' => 'Riwayat tersimpan', 'value' => $harvests->clone()->count().' catatan', 'detail' => 'Siap dipakai untuk laporan', 'icon' => 'history', 'tone' => 'warning'],
             ],
@@ -42,6 +44,7 @@ class FarmerController extends Controller
     public function harvests(Request $request): View
     {
         $harvestsQuery = HarvestLog::with('commodity')
+            ->forOrganization($request->user()->organization_id)
             ->where('user_id', auth()->id())
             ->when($request->filled('status'), function ($query) use ($request): void {
                 $status = $request->string('status')->toString();
@@ -75,14 +78,15 @@ class FarmerController extends Controller
     {
         return view('petani.harvest-create', [
             'pageTitle' => 'Rekam panen musim ini',
-            'commodities' => Commodity::where('is_active', true)->orderBy('nama_komoditas')->get(),
+            'commodities' => Commodity::forOrganization(auth()->user()->organization_id)->where('is_active', true)->orderBy('nama_komoditas')->get(),
         ]);
     }
 
     public function storeHarvest(Request $request): RedirectResponse
     {
+        $organizationId = $request->user()->organization_id;
         $validated = $request->validate([
-            'commodity_id' => ['required', Rule::exists('komoditas', 'id')->where('is_active', true)],
+            'commodity_id' => ['required', Rule::exists('komoditas', 'id')->where('organization_id', $organizationId)->where('is_active', true)],
             'harvest_date' => ['required', 'date', 'before_or_equal:today'],
             'location' => ['required', 'string', 'max:120'],
             'quantity' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
@@ -92,6 +96,7 @@ class FarmerController extends Controller
         ]);
 
         $harvest = HarvestLog::create($validated + [
+            'organization_id' => $organizationId,
             'user_id' => $request->user()->id,
             'status' => 'menunggu',
         ]);
@@ -127,17 +132,18 @@ class FarmerController extends Controller
 
     private function latestPrices(): array
     {
-        $commodities = Commodity::where('is_active', true)->with('category')->orderBy('nama_komoditas')->get();
-        $dailyPrices = DailyPrice::with('market')->orderByDesc('tanggal')->orderByDesc('id')->get();
+        $organizationId = auth()->user()?->organization_id;
+        $commodities = Commodity::forOrganization($organizationId)->where('is_active', true)->with('category')->orderBy('nama_komoditas')->get();
+        $dailyPrices = DailyPrice::forOrganization($organizationId)->with(['market', 'items'])->orderByDesc('tanggal')->orderByDesc('id')->get();
 
         return $commodities->map(function (Commodity $commodity) use ($dailyPrices): array {
-            $latest = $dailyPrices->first(fn (DailyPrice $price): bool => array_key_exists((string) $commodity->id, $price->data_harga ?? []));
+            $latest = $dailyPrices->first(fn (DailyPrice $price): bool => $this->hasCommodityPrice($price, $commodity));
             $previous = $dailyPrices
-                ->filter(fn (DailyPrice $price): bool => $latest && $price->id !== $latest->id && array_key_exists((string) $commodity->id, $price->data_harga ?? []))
+                ->filter(fn (DailyPrice $price): bool => $latest && $price->id !== $latest->id && $this->hasCommodityPrice($price, $commodity))
                 ->first();
 
-            $currentPrice = $latest ? (float) $latest->data_harga[$commodity->id] : (float) ($commodity->harga_acuan ?? 0);
-            $previousPrice = $previous ? (float) $previous->data_harga[$commodity->id] : $currentPrice;
+            $currentPrice = $latest ? $this->commodityPrice($latest, $commodity) : (float) ($commodity->harga_acuan ?? 0);
+            $previousPrice = $previous ? $this->commodityPrice($previous, $commodity) : $currentPrice;
             $delta = $previousPrice > 0 ? (($currentPrice - $previousPrice) / $previousPrice) * 100 : 0;
 
             return [
@@ -153,14 +159,34 @@ class FarmerController extends Controller
         })->all();
     }
 
+    private function hasCommodityPrice(DailyPrice $price, Commodity $commodity): bool
+    {
+        return $price->items->contains(fn (DailyPriceItem $item): bool => $item->commodity_id === $commodity->id)
+            || array_key_exists((string) $commodity->id, $price->data_harga ?? [])
+            || array_key_exists($commodity->id, $price->data_harga ?? []);
+    }
+
+    private function commodityPrice(DailyPrice $price, Commodity $commodity): float
+    {
+        $item = $price->items->first(fn (DailyPriceItem $item): bool => $item->commodity_id === $commodity->id);
+
+        if ($item) {
+            return (float) $item->price;
+        }
+
+        return (float) (($price->data_harga ?? [])[(string) $commodity->id] ?? ($price->data_harga ?? [])[$commodity->id]);
+    }
+
     private function monthlyHarvestTrend(int $userId): array
     {
-        $rows = collect(range(5, 0))->map(function (int $monthsAgo) use ($userId): array {
+        $organizationId = auth()->user()?->organization_id;
+        $rows = collect(range(5, 0))->map(function (int $monthsAgo) use ($userId, $organizationId): array {
             $month = now()->subMonths($monthsAgo);
 
             return [
                 'label' => $month->translatedFormat('M'),
-                'quantity' => (float) HarvestLog::where('user_id', $userId)
+                'quantity' => (float) HarvestLog::forOrganization($organizationId)
+                    ->where('user_id', $userId)
                     ->whereYear('harvest_date', $month->year)
                     ->whereMonth('harvest_date', $month->month)
                     ->sum('quantity'),

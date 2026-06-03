@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,9 +19,11 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        $organization = Organization::factory()->create(['name' => 'Gapoktan Demo']);
+
         $response = $this->post('/register', [
             'name' => 'Test User',
-            'village' => 'Desa Sukamaju',
+            'organization_id' => $organization->id,
             'role' => 'petani',
             'email' => 'test@example.com',
             'password' => 'password',

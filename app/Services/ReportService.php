@@ -16,11 +16,12 @@ class ReportService
      */
     public function filters(Request $request): array
     {
+        $organizationId = $request->user()?->organization_id;
         $rules = [
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date'],
-            'commodity_id' => ['nullable', 'integer', Rule::exists('komoditas', 'id')],
-            'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', 'petani')],
+            'commodity_id' => ['nullable', 'integer', Rule::exists('komoditas', 'id')->where('organization_id', $organizationId)],
+            'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', 'petani')->where('organization_id', $organizationId)],
             'status' => ['nullable', Rule::in(['menunggu', 'terverifikasi', 'butuh-review'])],
             'search' => ['nullable', 'string', 'max:120'],
         ];
@@ -47,7 +48,10 @@ class ReportService
      */
     public function query(array $filters): Builder
     {
+        $organizationId = auth()->user()?->organization_id;
+
         return HarvestLog::with(['user', 'commodity'])
+            ->forOrganization($organizationId)
             ->when($filters['commodity_id'], fn (Builder $query, string $id) => $query->where('commodity_id', $id))
             ->when($filters['user_id'], fn (Builder $query, string $id) => $query->where('user_id', $id))
             ->when($filters['status'], fn (Builder $query, string $status) => $query->where('status', $status))

@@ -2,6 +2,12 @@
 
 @php
     $roles = [
+        'super_admin' => [
+            'icon' => 'space_dashboard',
+            'label' => 'Super Admin',
+            'description' => 'Kelola approval organisasi platform',
+            'helper' => 'Pilih role platform',
+        ],
         'petani' => [
             'icon' => 'nature_people',
             'label' => 'Petani',
@@ -17,6 +23,11 @@
     ];
 
     $demoAccounts = [
+        [
+            'role' => 'Super Admin',
+            'email' => 'superadmin@tanisync.id',
+            'helper' => 'Pilih role platform',
+        ],
         [
             'role' => 'Admin',
             'email' => 'admin@tanisync.id',
@@ -57,11 +68,11 @@
                     <div class="rounded-[1.5rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_44px_-34px_rgba(5,25,39,0.28)] backdrop-blur">
                         <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#9c5421]">Dashboard terpadu</p>
                         <h2 class="mt-2 font-heading text-2xl font-extrabold leading-tight text-[#172018] sm:text-3xl">
-                            Kelola data panen dan harga desa dalam satu alur.
+                            Kelola platform, organisasi, data panen, dan harga dalam satu alur.
                         </h2>
                         <div class="mt-5 grid gap-3 sm:grid-cols-3">
                             <div class="rounded-2xl bg-[#f2f7f1] px-4 py-3">
-                                <p class="text-xl font-extrabold text-[#078d45]">2</p>
+                                <p class="text-xl font-extrabold text-[#078d45]">3</p>
                                 <p class="text-xs font-semibold text-[#5c6f62]">Role akses</p>
                             </div>
                             <div class="rounded-2xl bg-[#f2f7f1] px-4 py-3">
@@ -94,7 +105,7 @@
 
                 <div class="space-y-3">
                     <p class="text-sm font-semibold text-[#5b6658]">Pilih peran akun</p>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="grid gap-3 lg:grid-cols-3">
                         @foreach ($roles as $role => $item)
                             <label class="cursor-pointer">
                                 <input type="radio" name="role" value="{{ $role }}" class="peer sr-only" {{ old('role', 'petani') === $role ? 'checked' : '' }}>
@@ -158,7 +169,7 @@
                         <a href="{{ route('landing') }}" class="text-sm font-semibold text-[#078d45] hover:underline">Kembali ke beranda</a>
                     </div>
 
-                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div class="mt-4 grid gap-3 lg:grid-cols-3">
                         @foreach ($demoAccounts as $account)
                             <div class="rounded-2xl bg-white px-4 py-3">
                                 <div class="flex items-center justify-between gap-3">

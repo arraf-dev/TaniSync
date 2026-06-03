@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\ActivityLog;
 use App\Models\Commodity;
 use App\Models\DailyPrice;
+use App\Models\DailyPriceItem;
 use App\Models\HarvestLog;
 use App\Models\Market;
 use App\Models\User;
@@ -27,28 +28,33 @@ class AdminController extends Controller
 {
     public function dashboard(): View
     {
+        $organizationId = auth()->user()->organization_id;
         $startOfMonth = now()->startOfMonth();
-        $harvestsThisMonth = HarvestLog::whereDate('harvest_date', '>=', $startOfMonth);
+        $harvestsThisMonth = HarvestLog::forOrganization($organizationId)->whereDate('harvest_date', '>=', $startOfMonth);
 
         return view('admin.dashboard', [
-            'pageTitle' => 'Ringkasan operasional desa',
+            'pageTitle' => 'Ringkasan operasional organisasi',
             'metrics' => [
-                ['label' => 'Petani aktif', 'value' => User::where('role', 'petani')->count(), 'detail' => 'Akun petani terdaftar', 'icon' => 'groups', 'tone' => 'primary'],
+                ['label' => 'Petani aktif', 'value' => User::where('organization_id', $organizationId)->where('role', 'petani')->count(), 'detail' => 'Akun petani terdaftar', 'icon' => 'groups', 'tone' => 'primary'],
                 ['label' => 'Total panen bulan ini', 'value' => number_format((float) $harvestsThisMonth->clone()->sum('quantity'), 2, ',', '.').' kg', 'detail' => $harvestsThisMonth->clone()->count().' catatan masuk', 'icon' => 'analytics', 'tone' => 'success'],
-                ['label' => 'Admin menunggu', 'value' => User::where('role', 'admin')->where('account_status', 'pending')->count(), 'detail' => 'Perlu persetujuan akses', 'icon' => 'admin_panel_settings', 'tone' => 'accent'],
-                ['label' => 'Panen menunggu', 'value' => HarvestLog::where('status', 'menunggu')->count(), 'detail' => 'Perlu verifikasi admin', 'icon' => 'description', 'tone' => 'warning'],
+                ['label' => 'Admin organisasi', 'value' => User::where('organization_id', $organizationId)->where('role', 'admin')->where('account_status', 'active')->count(), 'detail' => 'Pengelola aktif', 'icon' => 'admin_panel_settings', 'tone' => 'accent'],
+                ['label' => 'Panen menunggu', 'value' => HarvestLog::forOrganization($organizationId)->where('status', 'menunggu')->count(), 'detail' => 'Perlu verifikasi admin', 'icon' => 'description', 'tone' => 'warning'],
             ],
-            'trends' => $this->monthlyHarvestTrend(),
-            'distribution' => $this->harvestDistribution(),
-            'recentActivities' => ActivityLog::with('user')->latest()->take(5)->get(),
+            'trends' => $this->monthlyHarvestTrend($organizationId),
+            'distribution' => $this->harvestDistribution($organizationId),
+            'recentActivities' => ActivityLog::with('user')->forOrganization($organizationId)->latest()->take(5)->get(),
         ]);
     }
 
     public function accessRequests(): View
     {
+        $organizationId = auth()->user()->organization_id;
+
         return view('admin.access-requests', [
             'pageTitle' => 'Persetujuan akses admin',
-            'requests' => User::where('role', 'admin')
+            'requests' => User::with('organization')
+                ->where('role', 'admin')
+                ->where('organization_id', $organizationId)
                 ->whereIn('account_status', ['pending', 'rejected'])
                 ->latest()
                 ->get(),
@@ -58,6 +64,7 @@ class AdminController extends Controller
     public function approveAccessRequest(Request $request, User $user): RedirectResponse
     {
         $this->ensureAdminRequest($user);
+        $this->ensureUserBelongsToOrganization($request, $user);
 
         $user->update([
             'account_status' => 'active',
@@ -81,6 +88,7 @@ class AdminController extends Controller
     public function rejectAccessRequest(Request $request, User $user): RedirectResponse
     {
         $this->ensureAdminRequest($user);
+        $this->ensureUserBelongsToOrganization($request, $user);
 
         $user->update([
             'account_status' => 'rejected',
@@ -103,15 +111,19 @@ class AdminController extends Controller
 
     public function activityLogs(): View
     {
+        $organizationId = auth()->user()->organization_id;
+
         return view('admin.activity-logs', [
             'pageTitle' => 'Aktivitas sistem',
-            'activities' => ActivityLog::with('user')->latest()->take(80)->get(),
+            'activities' => ActivityLog::with('user')->forOrganization($organizationId)->latest()->take(80)->get(),
         ]);
     }
 
     public function commodities(): View
     {
+        $organizationId = auth()->user()->organization_id;
         $commoditiesQuery = Commodity::with('category')
+            ->forOrganization($organizationId)
             ->when(request('search'), function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('nama_komoditas', 'like', "%{$search}%")
@@ -137,14 +149,15 @@ class AdminController extends Controller
 
     public function storeCommodity(Request $request): RedirectResponse
     {
+        $organizationId = $request->user()->organization_id;
         $validated = $request->validate([
-            'nama_komoditas' => ['required', 'string', 'max:100'],
+            'nama_komoditas' => ['required', 'string', 'max:100', Rule::unique('komoditas', 'nama_komoditas')->where('organization_id', $organizationId)],
             'kategori_id' => ['required', 'exists:kategori_komoditas,id'],
             'satuan' => ['required', 'string', 'max:20'],
             'harga_acuan' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $commodity = Commodity::create($validated + ['is_active' => true]);
+        $commodity = Commodity::create($validated + ['organization_id' => $organizationId, 'is_active' => true]);
 
         ActivityLog::record('commodity_created', "Komoditas {$commodity->nama_komoditas} ditambahkan.", $commodity);
 
@@ -153,8 +166,10 @@ class AdminController extends Controller
 
     public function updateCommodity(Request $request, Commodity $commodity): RedirectResponse
     {
+        $this->ensureModelBelongsToOrganization($request, $commodity);
+        $organizationId = $request->user()->organization_id;
         $validated = $request->validate([
-            'nama_komoditas' => ['required', 'string', 'max:100'],
+            'nama_komoditas' => ['required', 'string', 'max:100', Rule::unique('komoditas', 'nama_komoditas')->where('organization_id', $organizationId)->ignore($commodity->id)],
             'kategori_id' => ['required', 'exists:kategori_komoditas,id'],
             'satuan' => ['required', 'string', 'max:20'],
             'harga_acuan' => ['nullable', 'numeric', 'min:0'],
@@ -169,6 +184,8 @@ class AdminController extends Controller
 
     public function toggleCommodity(Commodity $commodity): RedirectResponse
     {
+        $this->ensureModelBelongsToOrganization(request(), $commodity);
+
         $commodity->update(['is_active' => ! $commodity->is_active]);
 
         ActivityLog::record(
@@ -182,25 +199,28 @@ class AdminController extends Controller
 
     public function prices(PriceService $prices): View
     {
+        $organizationId = auth()->user()->organization_id;
+
         return view('admin.prices', [
             'pageTitle' => 'Update harga komoditas',
-            'markets' => Market::where('is_active', true)->orderBy('nama_pasar')->get(),
-            'commodities' => Commodity::where('is_active', true)->with('category')->orderBy('nama_komoditas')->get(),
+            'markets' => Market::forOrganization($organizationId)->where('is_active', true)->orderBy('nama_pasar')->get(),
+            'commodities' => Commodity::forOrganization($organizationId)->where('is_active', true)->with('category')->orderBy('nama_komoditas')->get(),
             'prices' => $prices->latestPrices(request()),
         ]);
     }
 
     public function storePrice(Request $request): RedirectResponse
     {
+        $organizationId = $request->user()->organization_id;
         $validated = $request->validate([
-            'id_pasar' => ['required', Rule::exists('pasar', 'id')->where('is_active', true)],
+            'id_pasar' => ['required', Rule::exists('pasar', 'id')->where('organization_id', $organizationId)->where('is_active', true)],
             'tanggal' => ['required', 'date', 'before_or_equal:today'],
             'prices' => ['required', 'array'],
             'prices.*' => ['nullable', 'numeric', 'min:1', 'max:100000000'],
             'status' => ['required', 'in:draft,submitted,verified'],
         ]);
 
-        $activeCommodityIds = Commodity::where('is_active', true)->pluck('id')->map(fn (int $id): string => (string) $id);
+        $activeCommodityIds = Commodity::forOrganization($organizationId)->where('is_active', true)->pluck('id')->map(fn (int $id): string => (string) $id);
         $priceData = collect($validated['prices'])
             ->only($activeCommodityIds)
             ->filter(fn ($price): bool => $price !== null && $price !== '')
@@ -214,9 +234,18 @@ class AdminController extends Controller
         }
 
         $dailyPrice = DailyPrice::updateOrCreate(
-            ['id_pasar' => $validated['id_pasar'], 'tanggal' => $validated['tanggal']],
+            ['organization_id' => $organizationId, 'id_pasar' => $validated['id_pasar'], 'tanggal' => $validated['tanggal']],
             ['data_harga' => $priceData, 'status' => $validated['status'], 'created_by' => $request->user()->id]
         );
+
+        $dailyPrice->items()->whereNotIn('commodity_id', array_keys($priceData))->delete();
+
+        foreach ($priceData as $commodityId => $price) {
+            DailyPriceItem::updateOrCreate(
+                ['daily_price_id' => $dailyPrice->id, 'commodity_id' => (int) $commodityId],
+                ['price' => $price]
+            );
+        }
 
         ActivityLog::record(
             'daily_price_saved',
@@ -230,7 +259,9 @@ class AdminController extends Controller
 
     public function harvests(): View
     {
+        $organizationId = auth()->user()->organization_id;
         $harvestsQuery = HarvestLog::with(['user', 'commodity'])
+            ->forOrganization($organizationId)
             ->when(request('commodity_id'), fn ($query, string $id) => $query->where('commodity_id', $id))
             ->when(request('user_id'), fn ($query, string $id) => $query->where('user_id', $id))
             ->when(request('status'), function ($query, string $status): void {
@@ -252,8 +283,8 @@ class AdminController extends Controller
 
         return view('admin.harvests', [
             'pageTitle' => 'Pantau log panen yang masuk',
-            'commodities' => Commodity::where('is_active', true)->orderBy('nama_komoditas')->get(),
-            'farmers' => User::where('role', 'petani')->orderBy('name')->get(),
+            'commodities' => Commodity::forOrganization($organizationId)->where('is_active', true)->orderBy('nama_komoditas')->get(),
+            'farmers' => User::where('organization_id', $organizationId)->where('role', 'petani')->orderBy('name')->get(),
             'harvests' => $harvestsQuery
                 ->paginate(10)
                 ->withQueryString()
@@ -263,6 +294,8 @@ class AdminController extends Controller
 
     public function updateHarvestStatus(Request $request, HarvestLog $harvestLog): RedirectResponse
     {
+        $this->ensureModelBelongsToOrganization($request, $harvestLog);
+
         $validated = $request->validate([
             'status' => ['required', 'in:menunggu,terverifikasi,butuh-review'],
         ]);
@@ -282,12 +315,13 @@ class AdminController extends Controller
     public function reports(Request $request, ReportService $reports, PriceService $prices): View
     {
         $report = $reports->pageData($reports->filters($request));
+        $organizationId = $request->user()->organization_id;
 
         return view('admin.reports', [
             'pageTitle' => 'Analitik dan ekspor',
             'prices' => $prices->latestPrices($request),
-            'commodities' => Commodity::where('is_active', true)->orderBy('nama_komoditas')->get(),
-            'farmers' => User::where('role', 'petani')->orderBy('name')->get(),
+            'commodities' => Commodity::forOrganization($organizationId)->where('is_active', true)->orderBy('nama_komoditas')->get(),
+            'farmers' => User::where('organization_id', $organizationId)->where('role', 'petani')->orderBy('name')->get(),
             'report' => $report,
         ]);
     }
@@ -398,6 +432,20 @@ class AdminController extends Controller
         }
     }
 
+    private function ensureUserBelongsToOrganization(Request $request, User $user): void
+    {
+        if ($user->organization_id !== $request->user()->organization_id) {
+            abort(404);
+        }
+    }
+
+    private function ensureModelBelongsToOrganization(Request $request, object $model): void
+    {
+        if (($model->organization_id ?? null) !== $request->user()->organization_id) {
+            abort(404);
+        }
+    }
+
     private function formatHarvest(HarvestLog $harvest): array
     {
         return [
@@ -414,14 +462,15 @@ class AdminController extends Controller
         ];
     }
 
-    private function monthlyHarvestTrend(): array
+    private function monthlyHarvestTrend(int $organizationId): array
     {
-        $rows = collect(range(5, 0))->map(function (int $monthsAgo): array {
+        $rows = collect(range(5, 0))->map(function (int $monthsAgo) use ($organizationId): array {
             $month = now()->subMonths($monthsAgo);
 
             return [
                 'label' => $month->translatedFormat('M'),
-                'quantity' => (float) HarvestLog::whereYear('harvest_date', $month->year)
+                'quantity' => (float) HarvestLog::forOrganization($organizationId)
+                    ->whereYear('harvest_date', $month->year)
                     ->whereMonth('harvest_date', $month->month)
                     ->sum('quantity'),
             ];
@@ -435,9 +484,10 @@ class AdminController extends Controller
         ])->all();
     }
 
-    private function harvestDistribution(): array
+    private function harvestDistribution(int $organizationId): array
     {
         $rows = HarvestLog::query()
+            ->forOrganization($organizationId)
             ->select('commodity_id', DB::raw('SUM(quantity) as total_quantity'))
             ->with('commodity')
             ->groupBy('commodity_id')

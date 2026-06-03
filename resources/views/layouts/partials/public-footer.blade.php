@@ -10,7 +10,7 @@
                 TaniSync
             </a>
             <p class="mt-4 max-w-xl text-sm leading-7 text-white/68">
-                Dibuat untuk digitalisasi pertanian desa: panen tercatat, harga terpantau, dan laporan lebih mudah disiapkan.
+                Dibuat untuk digitalisasi organisasi pertanian: panen tercatat, harga terpantau, dan laporan lebih mudah disiapkan.
             </p>
         </div>
         <div class="flex flex-wrap gap-3 md:justify-end">

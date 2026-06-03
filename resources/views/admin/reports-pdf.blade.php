@@ -28,7 +28,7 @@
         <tr>
             <td>
                 <div class="brand">TaniSync</div>
-                <h1>Laporan Panen Desa</h1>
+                <h1>Laporan Panen Organisasi</h1>
                 <p>Rekap data panen berdasarkan filter aktif.</p>
             </td>
             <td class="meta">

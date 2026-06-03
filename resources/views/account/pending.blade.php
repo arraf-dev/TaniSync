@@ -13,8 +13,8 @@
                 </h1>
                 <p class="mx-auto max-w-xl text-sm leading-7 text-[#5b6658]">
                     {{ $user->isRejected()
-                        ? 'Akses admin Anda belum dapat digunakan. Hubungi pengelola TaniSync desa untuk peninjauan ulang.'
-                        : 'Akun Anda sudah tercatat. Pengelola aktif perlu menyetujui akses sebelum Anda dapat membuka dashboard admin.' }}
+                        ? 'Akses admin Anda belum dapat digunakan. Hubungi pengelola TaniSync untuk peninjauan ulang.'
+                        : 'Akun dan organisasi Anda sudah tercatat. Super admin perlu menyetujui pengajuan sebelum dashboard admin dapat dibuka.' }}
                 </p>
             </div>
             <div class="rounded-3xl border border-[#dfe8dc] bg-[#f7faf7] p-5 text-left">
@@ -22,6 +22,9 @@
                     <div>
                         <p class="font-bold text-[#061826]">{{ $user->name }}</p>
                         <p class="text-[#718174]">{{ $user->email }}</p>
+                        @if ($user->organization?->name)
+                            <p class="mt-1 text-xs font-semibold text-[#718174]">{{ $user->organization->name }}</p>
+                        @endif
                     </div>
                     <div class="sm:text-right">
                         <span class="status-pill {{ $user->isRejected() ? 'status-danger' : 'status-warning' }}">

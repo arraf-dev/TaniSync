@@ -31,7 +31,7 @@
     <div class="top">
         <div>
             <div class="brand">TaniSync</div>
-            <h1>Laporan Panen Desa</h1>
+            <h1>Laporan Panen Organisasi</h1>
             <p>Dicetak pada {{ now()->translatedFormat('d M Y H:i') }}</p>
         </div>
         <div>
