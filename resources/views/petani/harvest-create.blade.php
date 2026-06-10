@@ -23,7 +23,7 @@
                         <label class="text-sm font-semibold text-[#5b6658]">Komoditas</label>
                         <select name="commodity_id" class="field-input">
                             @foreach ($commodities as $commodity)
-                                <option value="{{ $commodity['id'] }}">{{ $commodity['name'] }}</option>
+                                <option value="{{ $commodity->id }}">{{ $commodity->nama_komoditas }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -61,7 +61,7 @@
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <p class="flex items-center gap-2 text-sm text-[#5b6658]">
                         <span class="material-symbols-outlined text-lg text-[#196b2c]">cloud_done</span>
-                        Data contoh ini akan di-flash ke session sebagai simulasi sebelum database domain penuh disiapkan.
+                        Data panen Anda akan disimpan ke dalam database dan divalidasi oleh admin.
                     </p>
                     <button type="submit" class="btn-primary px-8 py-4 text-base">
                         Simpan catatan panen

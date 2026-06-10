@@ -6,21 +6,33 @@
         ['label' => 'Panen', 'route' => 'admin.harvests', 'icon' => 'rebase_edit'],
         ['label' => 'Laporan', 'route' => 'admin.reports', 'icon' => 'analytics'],
     ];
+    $superadminLinks = array_merge($adminLinks, [
+        ['label' => 'Pengguna', 'route' => 'superadmin.users', 'icon' => 'group'],
+    ]);
     $farmerLinks = [
         ['label' => 'Beranda', 'route' => 'petani.dashboard', 'icon' => 'home'],
         ['label' => 'Catat', 'route' => 'petani.harvests.create', 'icon' => 'add_circle'],
         ['label' => 'Riwayat', 'route' => 'petani.harvests', 'icon' => 'history'],
         ['label' => 'Harga', 'route' => 'petani.prices', 'icon' => 'payments'],
     ];
-    $links = $role === 'admin' ? $adminLinks : $farmerLinks;
-    $actionRoute = $role === 'admin' ? route('admin.commodities') : route('petani.harvests.create');
-    $actionLabel = $role === 'admin' ? 'Tambah data baru' : 'Catat panen';
+    $links = match ($role) {
+        'superadmin' => $superadminLinks,
+        'admin' => $adminLinks,
+        default => $farmerLinks,
+    };
+    $actionRoute = in_array($role, ['superadmin', 'admin']) ? route('admin.commodities') : route('petani.harvests.create');
+    $actionLabel = in_array($role, ['superadmin', 'admin']) ? 'Tambah data baru' : 'Catat panen';
+    $roleLabel = match ($role) {
+        'superadmin' => 'Super Admin',
+        'admin' => 'Admin Desa',
+        default => 'Petani',
+    };
 @endphp
 
 <aside class="hidden h-screen w-72 shrink-0 flex-col border-r border-[#cad4c4]/70 bg-white/80 px-5 py-8 md:flex">
     <div class="px-3">
         <p class="font-heading text-2xl font-extrabold text-[#196b2c]">TaniSync</p>
-        <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#5b6658]">Digital agritech desa</p>
+        <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#5b6658]">{{ $roleLabel }}</p>
     </div>
     <nav class="mt-10 flex flex-1 flex-col gap-2">
         @foreach ($links as $link)
@@ -36,7 +48,7 @@
         {{ $actionLabel }}
     </a>
     <div class="mt-6 flex items-center gap-3 border-t border-[#cad4c4]/70 px-3 pt-6">
-        <img src="{{ $role === 'admin' ? 'https://i.pravatar.cc/120?img=12' : 'https://i.pravatar.cc/120?img=15' }}" alt="{{ $user?->name }}" class="h-12 w-12 rounded-2xl object-cover">
+        <img src="{{ $role === 'admin' ? 'https://i.pravatar.cc/120?img=12' : ($role === 'superadmin' ? 'https://i.pravatar.cc/120?img=3' : 'https://i.pravatar.cc/120?img=15') }}" alt="{{ $user?->name }}" class="h-12 w-12 rounded-2xl object-cover">
         <div class="min-w-0">
             <p class="truncate font-heading text-sm font-bold text-[#172018]">{{ $user?->name }}</p>
             <p class="truncate text-xs text-[#5b6658]">{{ $user?->email }}</p>

@@ -11,11 +11,20 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
+        // Users
+        User::query()->updateOrCreate(
+            ['email' => 'superadmin@tanisync.id'],
+            [
+                'name' => 'Super Admin',
+                'village' => 'Desa Sukamaju',
+                'role' => 'superadmin',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password123'),
+            ]
+        );
+
         User::query()->updateOrCreate(
             ['email' => 'admin@tanisync.id'],
             [
@@ -37,5 +46,14 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('password123'),
             ]
         );
+
+        // Domain data (order matters due to FK dependencies)
+        $this->call([
+            CategorySeeder::class,
+            CommoditySeeder::class,
+            MarketSeeder::class,
+            DailyPriceSeeder::class,
+            HarvestSeeder::class,
+        ]);
     }
 }

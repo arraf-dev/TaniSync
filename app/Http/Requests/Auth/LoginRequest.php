@@ -29,7 +29,6 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email'],
-            'role' => ['required', 'in:admin,petani'],
             'password' => ['required', 'string'],
         ];
     }
@@ -46,7 +45,6 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt([
             'email' => $this->string('email')->toString(),
             'password' => $this->string('password')->toString(),
-            'role' => $this->string('role')->toString(),
         ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
@@ -86,6 +84,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->string('role').'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
 }

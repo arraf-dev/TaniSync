@@ -17,7 +17,16 @@ class EnsureUserHasRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role, $roles, true)) {
+        if (! $user) {
+            abort(Response::HTTP_FORBIDDEN);
+        }
+
+        // SuperAdmin can access any role-protected route
+        if ($user->isSuperAdmin()) {
+            return $next($request);
+        }
+
+        if (! in_array($user->role, $roles, true)) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

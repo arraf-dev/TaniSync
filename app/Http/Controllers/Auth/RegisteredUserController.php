@@ -34,7 +34,6 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'village' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'in:admin,petani'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -42,7 +41,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'village' => $request->village,
-            'role' => $request->role,
+            'role' => 'petani',
             'password' => Hash::make($request->password),
         ]);
 

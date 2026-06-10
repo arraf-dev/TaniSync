@@ -2,20 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $categories = ['Beras & Karbohidrat', 'Sayuran', 'Bumbu Dapur', 'Protein Hewani', 'Minyak & Gula'];
-        
+        $categories = ['Pangan', 'Hortikultura', 'Umbi-umbian', 'Palawija'];
+
         foreach ($categories as $cat) {
-            \App\Models\Category::create(['nama_kategori' => $cat]);
+            Category::query()->updateOrCreate(
+                ['nama_kategori' => $cat],
+                ['is_active' => true]
+            );
         }
     }
 }
